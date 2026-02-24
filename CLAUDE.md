@@ -5,7 +5,7 @@
 EntropyHunter-7B is a domain-specific language model fine-tuned for industrial exergy analysis and entropy generation detection. It is the world's first open-source model for second-law thermodynamic analysis.
 
 **Owner:** Kemal Düzkar / Olivenet Ltd.
-**Status:** Faz 1 (Taxonomy) complete, starting Faz 2 (Data Generation)
+**Status:** Phase 1 (Taxonomy) complete, starting Phase 2 (Data Generation)
 
 ## Repository Structure
 
@@ -65,7 +65,7 @@ use the values from ExergyLab's engines:
 - All temperatures in Kelvin for calculations, Celsius for display
 - All pressures in kPa internally, bar for display
 
-## Current Phase: Faz 2 — Data Generation
+## Current Phase: Phase 2 — Data Generation
 
 Next steps:
 1. Write prompt templates in `datagen/templates/` for each analysis family

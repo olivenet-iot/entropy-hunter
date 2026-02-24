@@ -138,40 +138,39 @@ def extract_numeric_values(text: str) -> dict[str, Optional[float]]:
 
     patterns = {
         "exergy_in": [
-            r"[Ee]xergy\s+(?:in|input|giriş)\s*[=:]\s*([\d,.]+)\s*kW",
+            r"[Ee]xergy\s+(?:in|input)\s*[=:]\s*([\d,.]+)\s*kW",
             r"Ex_in\s*[=:]\s*([\d,.]+)",
         ],
         "exergy_out": [
-            r"[Ee]xergy\s+(?:out|output|çıkış)\s*[=:]\s*([\d,.]+)\s*kW",
+            r"[Ee]xergy\s+(?:out|output)\s*[=:]\s*([\d,.]+)\s*kW",
             r"Ex_out\s*[=:]\s*([\d,.]+)",
         ],
         "exergy_destroyed": [
-            r"[Ee]xergy\s+(?:destroyed|yıkım|destruction)\s*[=:]\s*([\d,.]+)\s*kW",
+            r"[Ee]xergy\s+(?:destroyed|destruction)\s*[=:]\s*([\d,.]+)\s*kW",
             r"Ex_(?:d|destroyed)\s*[=:]\s*([\d,.]+)",
             r"I_(?:dot|total)\s*[=:]\s*([\d,.]+)",
         ],
         "efficiency": [
-            r"[Ee]xergy\s+(?:efficiency|verim)\s*[=:]\s*([\d,.]+)\s*%",
+            r"[Ee]xergy\s+efficiency\s*[=:]\s*([\d,.]+)\s*%",
             r"η_?(?:ex|II)\s*[=:]\s*([\d,.]+)",
         ],
         "entropy_generation": [
             r"S_gen\s*[=:]\s*([\d,.]+)\s*kW/K",
-            r"[Ee]ntropi\s+üretimi\s*[=:]\s*([\d,.]+)",
         ],
         "bejan_number": [
             r"N_s\s*[=:]\s*([\d,.]+)",
-            r"Bejan\s+(?:sayısı|number)\s*[=:]\s*([\d,.]+)",
+            r"Bejan\s+number\s*[=:]\s*([\d,.]+)",
         ],
         "f_factor": [
-            r"f[_-]?fakt[öo]r\s*[=:]\s*([\d,.]+)",
+            r"f[_-]?factor\s*[=:]\s*([\d,.]+)",
             r"f\s*[=:]\s*([\d,.]+)",
         ],
         "avoidable": [
-            r"(?:kaçınılabilir|avoidable)\s*[=:]\s*([\d,.]+)\s*kW",
+            r"[Aa]voidable\s*[=:]\s*([\d,.]+)\s*kW",
             r"I_AV\s*[=:]\s*([\d,.]+)",
         ],
         "unavoidable": [
-            r"(?:kaçınılmaz|unavoidable)\s*[=:]\s*([\d,.]+)\s*kW",
+            r"[Uu]navoidable\s*[=:]\s*([\d,.]+)\s*kW",
             r"I_UN\s*[=:]\s*([\d,.]+)",
         ],
     }

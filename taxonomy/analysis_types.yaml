@@ -7,7 +7,7 @@ analysis_types:
 
   basic_exergy:
     id: A
-    label: "Temel Exergy Analizi"
+    label: "Basic Exergy Analysis"
     exergylab_source: "analyze_{equipment}() + core.py"
     difficulty: 1
     version: "v0.1"
@@ -26,7 +26,7 @@ analysis_types:
 
   exergoeconomic:
     id: B
-    label: "Exergoekonomik Analiz (SPECO)"
+    label: "Exergoeconomic Analysis (SPECO)"
     exergylab_source: "exergoeconomic.py"
     difficulty: 2
     version: "v0.1"
@@ -44,7 +44,7 @@ analysis_types:
 
   pinch_analysis:
     id: C
-    label: "Pinch Analizi (Linnhoff)"
+    label: "Pinch Analysis (Linnhoff)"
     exergylab_source: "pinch.py"
     difficulty: 2
     version: "v0.2"
@@ -62,7 +62,7 @@ analysis_types:
 
   advanced_exergy:
     id: D
-    label: "İleri Exergy Dekompozisyonu (Tsatsaronis)"
+    label: "Advanced Exergy Decomposition (Tsatsaronis)"
     exergylab_source: "advanced_exergy.py"
     difficulty: 3
     version: "v0.2"
@@ -83,7 +83,7 @@ analysis_types:
 
   entropy_generation:
     id: E
-    label: "Entropi Üretim Minimizasyonu (EGM)"
+    label: "Entropy Generation Minimization (EGM)"
     exergylab_source: "entropy_generation.py"
     difficulty: 3
     version: "v0.1"
@@ -102,7 +102,7 @@ analysis_types:
 
   thermoeconomic_optimization:
     id: F
-    label: "Termoekonomik Optimizasyon"
+    label: "Thermoeconomic Optimization"
     exergylab_source: "thermoeconomic_optimization.py"
     difficulty: 3
     version: "v0.2"
@@ -119,7 +119,7 @@ analysis_types:
 
   energy_management:
     id: G
-    label: "Enerji Yönetimi (ISO 50001)"
+    label: "Energy Management (ISO 50001)"
     exergylab_source: "energy_management.py"
     difficulty: 2
     version: "v0.2"
@@ -136,7 +136,7 @@ analysis_types:
 
   gap_analysis:
     id: H
-    label: "3-Katmanlı Gap Analizi"
+    label: "3-Layer Gap Analysis"
     exergylab_source: "gap_analysis.py + process_exergy.py"
     difficulty: 2
     version: "v0.2"
@@ -165,42 +165,42 @@ analysis_types:
 
   avoidable_unavoidable:
     id: I
-    label: "AV/UN Ayrışımı"
+    label: "AV/UN Decomposition"
     exergylab_source: "core.py → compute_avoidable_split()"
     difficulty: 1
     version: "v0.1"
 
   whatif_comparison:
     id: J
-    label: "What-if Senaryo Karşılaştırma"
+    label: "What-if Scenario Comparison"
     exergylab_source: "compare.py"
     difficulty: 2
     version: "v0.1"
 
   hotspot_detection:
     id: K
-    label: "Hotspot Tespiti"
+    label: "Hotspot Detection"
     exergylab_source: "factory.py → _identify_hotspots()"
     difficulty: 1
     version: "v0.1"
 
   integration_opportunities:
     id: L
-    label: "Entegrasyon Fırsatları"
+    label: "Integration Opportunities"
     exergylab_source: "factory.py → _detect_integration_opportunities()"
     difficulty: 2
     version: "v0.2"
 
   fault_diagnosis:
     id: M
-    label: "Exergy-Tabanlı Arıza Teşhisi"
+    label: "Exergy-Based Fault Diagnosis"
     exergylab_source: null  # NEW capability
     difficulty: 3
     version: "v0.3"
 
   sankey_interpretation:
     id: N
-    label: "Sankey Diyagramı Yorumlama"
+    label: "Sankey Diagram Interpretation"
     exergylab_source: "factory_sankey_v2.py"
     difficulty: 2
     version: "v0.3"

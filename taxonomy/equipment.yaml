@@ -3,25 +3,25 @@
 
 equipment:
   compressor:
-    label: "Kompresör / Compressor"
+    label: "Compressor"
     subtypes:
       - id: screw
-        label: "Vidalı Kompresör"
+        label: "Screw Compressor"
         typical_capacity_kW: [15, 37, 55, 75, 110, 160, 250]
         typical_efficiency_pct: [65, 85]
         typical_exergy_destruction_kW: [5, 50]
       - id: piston
-        label: "Pistonlu Kompresör"
+        label: "Reciprocating Compressor"
         typical_capacity_kW: [5, 15, 30, 55, 75]
         typical_efficiency_pct: [55, 78]
         typical_exergy_destruction_kW: [3, 30]
       - id: scroll
-        label: "Scroll Kompresör"
+        label: "Scroll Compressor"
         typical_capacity_kW: [5, 10, 20, 37]
         typical_efficiency_pct: [60, 80]
         typical_exergy_destruction_kW: [2, 15]
       - id: centrifugal
-        label: "Santrifüj Kompresör"
+        label: "Centrifugal Compressor"
         typical_capacity_kW: [75, 160, 250, 500, 1000]
         typical_efficiency_pct: [70, 88]
         typical_exergy_destruction_kW: [20, 150]
@@ -38,40 +38,40 @@ equipment:
       centrifugal: { efficiency_pct: 90 }
 
   boiler:
-    label: "Kazan / Boiler"
+    label: "Boiler"
     subtypes:
       - id: steam_firetube
-        label: "Ateş Borulu Buhar Kazanı"
+        label: "Fire-Tube Steam Boiler"
         typical_capacity_kW: [250, 500, 1000, 2000, 5000]
         typical_efficiency_pct: [25, 45]  # exergy efficiency
         typical_exergy_destruction_kW: [100, 2000]
       - id: steam_watertube
-        label: "Su Borulu Buhar Kazanı"
+        label: "Water-Tube Steam Boiler"
         typical_capacity_kW: [500, 1000, 2000, 5000, 10000]
         typical_efficiency_pct: [28, 48]
         typical_exergy_destruction_kW: [200, 5000]
       - id: hotwater
-        label: "Sıcak Su Kazanı"
+        label: "Hot Water Boiler"
         typical_capacity_kW: [50, 100, 250, 500, 1000]
         typical_efficiency_pct: [15, 30]
         typical_exergy_destruction_kW: [30, 500]
       - id: condensing
-        label: "Yoğuşmalı Kazan"
+        label: "Condensing Boiler"
         typical_capacity_kW: [50, 100, 250, 500, 1000]
         typical_efficiency_pct: [30, 50]
         typical_exergy_destruction_kW: [20, 400]
       - id: waste_heat
-        label: "Atık Isı Kazanı"
+        label: "Waste Heat Boiler"
         typical_capacity_kW: [100, 500, 1000, 2000]
         typical_efficiency_pct: [20, 40]
         typical_exergy_destruction_kW: [50, 1000]
       - id: electric
-        label: "Elektrikli Kazan"
+        label: "Electric Boiler"
         typical_capacity_kW: [50, 100, 250, 500]
         typical_efficiency_pct: [25, 40]
         typical_exergy_destruction_kW: [20, 300]
       - id: biomass
-        label: "Biyokütle Kazanı"
+        label: "Biomass Boiler"
         typical_capacity_kW: [100, 250, 500, 1000, 2000]
         typical_efficiency_pct: [20, 38]
         typical_exergy_destruction_kW: [50, 1200]
@@ -84,14 +84,14 @@ equipment:
       thermal_efficiency_pct: { min: 70, max: 99, typical: [75, 80, 85, 88, 90, 92, 95] }
 
   chiller:
-    label: "Chiller / Soğutma Grubu"
+    label: "Chiller"
     subtypes:
       - id: screw
-        label: "Vidalı Chiller"
+        label: "Screw Chiller"
         typical_capacity_kW: [100, 200, 500, 1000]
         typical_cop: [3.5, 5.5]
       - id: centrifugal
-        label: "Santrifüj Chiller"
+        label: "Centrifugal Chiller"
         typical_capacity_kW: [500, 1000, 2000, 5000]
         typical_cop: [4.0, 6.5]
       - id: scroll
@@ -99,19 +99,19 @@ equipment:
         typical_capacity_kW: [20, 50, 100, 200]
         typical_cop: [3.0, 5.0]
       - id: reciprocating
-        label: "Pistonlu Chiller"
+        label: "Reciprocating Chiller"
         typical_capacity_kW: [50, 100, 200]
         typical_cop: [3.0, 4.5]
       - id: absorption
-        label: "Absorpsiyonlu Chiller"
+        label: "Absorption Chiller"
         typical_capacity_kW: [100, 300, 500, 1000, 2000]
         typical_cop: [0.7, 1.4]
       - id: air_cooled
-        label: "Hava Soğutmalı Chiller"
+        label: "Air-Cooled Chiller"
         typical_capacity_kW: [20, 50, 100, 200, 500]
         typical_cop: [2.5, 4.0]
       - id: water_cooled
-        label: "Su Soğutmalı Chiller"
+        label: "Water-Cooled Chiller"
         typical_capacity_kW: [100, 300, 500, 1000, 2000]
         typical_cop: [4.0, 6.0]
     parameters:
@@ -122,20 +122,20 @@ equipment:
       refrigerant: [R134a, R410A, R407C, R744, R1234ze, LiBr_H2O, NH3]
 
   pump:
-    label: "Pompa / Pump"
+    label: "Pump"
     subtypes:
       - id: centrifugal
-        label: "Santrifüj Pompa"
+        label: "Centrifugal Pump"
       - id: positive_displacement
-        label: "Pozitif Deplasmalı Pompa"
+        label: "Positive Displacement Pump"
       - id: submersible
-        label: "Dalgıç Pompa"
+        label: "Submersible Pump"
       - id: vertical_turbine
-        label: "Dikey Türbin Pompa"
+        label: "Vertical Turbine Pump"
       - id: booster
-        label: "Basınç Artırıcı Pompa"
+        label: "Booster Pump"
       - id: vacuum
-        label: "Vakum Pompası"
+        label: "Vacuum Pump"
     parameters:
       flow_rate_m3_h: { min: 1, max: 1000, typical: [5, 10, 20, 50, 100, 200, 500] }
       head_m: { min: 5, max: 200, typical: [10, 20, 30, 50, 80, 100, 150] }
@@ -145,24 +145,24 @@ equipment:
       fluid_temp_C: { min: 5, max: 95, typical: [15, 25, 40, 60, 80] }
 
   heat_exchanger:
-    label: "Isı Eşanjörü / Heat Exchanger"
+    label: "Heat Exchanger"
     subtypes:
       - id: shell_tube
-        label: "Boru Demeti Eşanjör"
+        label: "Shell & Tube Heat Exchanger"
       - id: plate
-        label: "Plakalı Eşanjör"
+        label: "Plate Heat Exchanger"
       - id: air_cooled
-        label: "Hava Soğutmalı Eşanjör"
+        label: "Air-Cooled Heat Exchanger"
       - id: double_pipe
-        label: "Çift Borulu Eşanjör"
+        label: "Double-Pipe Heat Exchanger"
       - id: spiral
-        label: "Spiral Eşanjör"
+        label: "Spiral Heat Exchanger"
       - id: economizer
-        label: "Ekonomizer"
+        label: "Economizer"
       - id: recuperator
-        label: "Reküperatör"
+        label: "Recuperator"
       - id: finned_tube
-        label: "Kanatlı Borulu Eşanjör"
+        label: "Finned-Tube Heat Exchanger"
     parameters:
       hot_inlet_temp_C: { min: 50, max: 600, typical: [80, 120, 150, 200, 300, 400, 500] }
       hot_outlet_temp_C: { min: 30, max: 400, typical: [40, 60, 80, 100, 150, 200] }
@@ -174,18 +174,18 @@ equipment:
       fluid_cold: [water, glycol_solution, air, refrigerant, process_fluid]
 
   steam_turbine:
-    label: "Buhar Türbini / Steam Turbine"
+    label: "Steam Turbine"
     subtypes:
       - id: back_pressure
-        label: "Karşı Basınçlı Türbin"
+        label: "Back-Pressure Turbine"
       - id: condensing
-        label: "Yoğuşmalı Türbin"
+        label: "Condensing Turbine"
       - id: extraction
-        label: "Ara Çekmeli Türbin"
+        label: "Extraction Turbine"
       - id: orc
-        label: "ORC Türbini"
+        label: "ORC Turbine"
       - id: micro_turbine
-        label: "Mikro Türbin"
+        label: "Micro Turbine"
     parameters:
       inlet_pressure_bar: { min: 5, max: 120, typical: [10, 15, 20, 30, 40, 60, 80, 100] }
       inlet_temp_C: { min: 150, max: 560, typical: [180, 200, 250, 300, 350, 400, 450, 500, 540] }
@@ -195,30 +195,30 @@ equipment:
       generator_efficiency_pct: { min: 88, max: 98, typical: [92, 94, 95, 96, 97] }
 
   dryer:
-    label: "Kurutma Fırını / Dryer"
+    label: "Dryer"
     subtypes:
       - id: convective
-        label: "Konvektif Kurutucu"
+        label: "Convective Dryer"
       - id: rotary
-        label: "Döner Kurutucu"
+        label: "Rotary Dryer"
       - id: fluidized_bed
-        label: "Akışkan Yatak Kurutucu"
+        label: "Fluidized Bed Dryer"
       - id: spray
-        label: "Sprey Kurutucu"
+        label: "Spray Dryer"
       - id: belt
-        label: "Bantlı Kurutucu"
+        label: "Belt Dryer"
       - id: heat_pump
-        label: "Isı Pompalı Kurutucu"
+        label: "Heat Pump Dryer"
       - id: infrared
-        label: "Kızılötesi Kurutucu"
+        label: "Infrared Dryer"
       - id: drum
-        label: "Tambur Kurutucu"
+        label: "Drum Dryer"
       - id: conveyor
-        label: "Konveyör Kurutucu"
+        label: "Conveyor Dryer"
       - id: tray
-        label: "Tepsi Kurutucu"
+        label: "Tray Dryer"
       - id: microwave
-        label: "Mikrodalga Kurutucu"
+        label: "Microwave Dryer"
     parameters:
       inlet_air_temp_C: { min: 40, max: 250, typical: [60, 80, 100, 120, 150, 180, 200] }
       outlet_air_temp_C: { min: 30, max: 120, typical: [40, 50, 60, 70, 80] }

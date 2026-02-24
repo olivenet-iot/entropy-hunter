@@ -1,28 +1,28 @@
 # Claude Code Agent Prompt — EntropyHunter GitHub Setup
 
-Aşağıdaki prompt'u Claude Code ajanına (home/ubuntu) ver:
+Give the following prompt to the Claude Code agent (home/ubuntu):
 
 ---
 
 ## PROMPT:
 
-EntropyHunter-7B projesi için GitHub repo oluştur ve push et. Dosyalar `/path/to/entropy-hunter/` dizininde hazır.
+Create a GitHub repo for the EntropyHunter-7B project and push it. Files are ready at `/path/to/entropy-hunter/`.
 
-Adımlar:
+Steps:
 
-1. GitHub'da `entropy-hunter` adında PUBLIC repo oluştur (GitHub CLI ile):
+1. Create a PUBLIC repo named `entropy-hunter` on GitHub (using GitHub CLI):
 ```bash
 cd /path/to/entropy-hunter
 gh repo create entropy-hunter --public --description "The world's first open-source fine-tuned model for industrial exergy analysis and entropy generation detection" --source . --push
 ```
 
-Eğer `gh` kurulu değilse:
+If `gh` is not installed:
 ```bash
 sudo apt install gh
 gh auth login
 ```
 
-2. Git init ve ilk commit:
+2. Git init and first commit:
 ```bash
 cd /path/to/entropy-hunter
 git init
@@ -36,37 +36,37 @@ Includes:
 - Analysis types taxonomy (14 types across 7 engines)
 - Data generation config with ExergyLab integration
 - Thermodynamic quality control checks
-- Project roadmap and Faz 1 taxonomy documentation
+- Project roadmap and Phase 1 taxonomy documentation
 - CLAUDE.md project instructions
 
-Faz 1 (Taxonomy) complete. Ready for Faz 2 (Data Generation)."
+Phase 1 (Taxonomy) complete. Ready for Phase 2 (Data Generation)."
 ```
 
-3. Remote ekle ve push et:
+3. Add remote and push:
 ```bash
 git branch -M main
 git remote add origin git@github.com:YOUR_USERNAME/entropy-hunter.git
 git push -u origin main
 ```
 
-4. GitHub repo ayarları:
-- Topics ekle: `exergy-analysis`, `thermodynamics`, `entropy`, `fine-tuning`, `lora`, `industrial-iot`, `energy-efficiency`, `second-law`
-- About kısmına yaz: "🔥 The world's first open-source fine-tuned model for industrial exergy analysis and entropy generation detection. Built on ExergyLab."
-- Wiki'yi kapat, Issues'ı aç, Discussions'ı aç
+4. GitHub repo settings:
+- Add topics: `exergy-analysis`, `thermodynamics`, `entropy`, `fine-tuning`, `lora`, `industrial-iot`, `energy-efficiency`, `second-law`
+- Set About to: "The world's first open-source fine-tuned model for industrial exergy analysis and entropy generation detection. Built on ExergyLab."
+- Disable Wiki, enable Issues, enable Discussions
 
-5. Doğrulama:
+5. Verification:
 ```bash
-# ExergyLab path kontrolü
+# ExergyLab path check
 cd /path/to/entropy-hunter
 python datagen/config.py
 ```
 
-Bu komut ExergyLab'ın knowledge ve skill dosyalarını bulabildiğini doğrulayacak. Eğer bulamazsa:
+This command will verify that ExergyLab's knowledge and skill files are accessible. If not:
 ```bash
 export EXERGYLAB_PATH=/path/to/exergy-lab
 ```
 
 ---
 
-NOT: `/path/to/entropy-hunter/` ve `YOUR_USERNAME` kısımlarını kendi değerlerinle değiştir.
-ExergyLab repo'sunun sibling directory olarak (`../exergy-lab/`) mevcut olduğundan emin ol.
+NOTE: Replace `/path/to/entropy-hunter/` and `YOUR_USERNAME` with your own values.
+Make sure the ExergyLab repo exists as a sibling directory (`../exergy-lab/`).
