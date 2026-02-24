@@ -1,0 +1,244 @@
+# EntropyHunter — Fluid Properties Reference
+# Provides default thermophysical properties for common industrial fluids.
+# Model should use these when exact CoolProp data is not available.
+# All values at atmospheric pressure unless noted.
+
+fluids:
+
+  # ===== GASES =====
+  
+  air:
+    label: "Air (dry)"
+    type: ideal_gas
+    molecular_weight: 28.97  # g/mol
+    R_specific: 0.287  # kJ/(kg·K)
+    properties_at_25C:
+      Cp: 1.005  # kJ/(kg·K)
+      Cv: 0.718
+      rho: 1.184  # kg/m³
+      mu: 1.849e-5  # Pa·s
+      k: 0.02551  # W/(m·K)
+      Pr: 0.7296
+    temperature_range_C: [-40, 1000]
+    Cp_correlation:
+      note: "Cp varies with temperature for high-T applications"
+      values:
+        - { T_C: 0, Cp: 1.006 }
+        - { T_C: 100, Cp: 1.011 }
+        - { T_C: 200, Cp: 1.026 }
+        - { T_C: 300, Cp: 1.047 }
+        - { T_C: 400, Cp: 1.069 }
+        - { T_C: 500, Cp: 1.093 }
+        - { T_C: 600, Cp: 1.116 }
+        - { T_C: 800, Cp: 1.156 }
+        - { T_C: 1000, Cp: 1.185 }
+    entropy_note: "s(T,P) = Cp·ln(T/T_ref) - R·ln(P/P_ref) for ideal gas"
+
+  flue_gas:
+    label: "Flue Gas (natural gas combustion)"
+    type: ideal_gas_mixture
+    typical_composition:
+      N2: 0.72
+      CO2: 0.09
+      H2O: 0.15
+      O2: 0.04
+    properties_approximation:
+      Cp: 1.10  # kJ/(kg·K) — average for 100-400°C
+      R_specific: 0.280  # kJ/(kg·K)
+      rho_at_200C: 0.746  # kg/m³
+    Cp_correlation:
+      values:
+        - { T_C: 100, Cp: 1.045 }
+        - { T_C: 200, Cp: 1.075 }
+        - { T_C: 300, Cp: 1.105 }
+        - { T_C: 400, Cp: 1.135 }
+        - { T_C: 500, Cp: 1.165 }
+    notes: |
+      For exergy analysis, flue gas is often approximated as air 
+      with Cp = 1.05-1.15 kJ/(kg·K). Detailed composition matters 
+      for chemical exergy calculations.
+
+  # ===== LIQUIDS =====
+
+  water:
+    label: "Water (liquid)"
+    type: incompressible_liquid
+    properties_at_25C:
+      Cp: 4.182  # kJ/(kg·K)
+      rho: 997.0  # kg/m³
+      mu: 8.9e-4  # Pa·s
+      k: 0.607  # W/(m·K)
+      Pr: 6.14
+    Cp_correlation:
+      values:
+        - { T_C: 5, Cp: 4.204 }
+        - { T_C: 15, Cp: 4.186 }
+        - { T_C: 25, Cp: 4.182 }
+        - { T_C: 40, Cp: 4.179 }
+        - { T_C: 60, Cp: 4.185 }
+        - { T_C: 80, Cp: 4.197 }
+        - { T_C: 100, Cp: 4.216 }
+    exergy_note: |
+      For liquid water: ex = Cp × [(T - T₀) - T₀ × ln(T/T₀)]
+      Pressure contribution usually negligible for incompressible fluids.
+      Use CoolProp for steam/two-phase regions.
+
+  glycol_solution:
+    label: "Ethylene Glycol Solution (30%)"
+    type: incompressible_liquid
+    properties_at_25C:
+      Cp: 3.65  # kJ/(kg·K)
+      rho: 1042  # kg/m³
+      mu: 2.0e-3  # Pa·s
+    notes: "Common in chilled water systems. Cp varies with concentration."
+
+  thermal_oil:
+    label: "Thermal Oil (e.g., Therminol 66)"
+    type: incompressible_liquid
+    properties_approximation:
+      Cp: 1.85  # kJ/(kg·K) at 200°C
+      rho: 890  # kg/m³ at 200°C
+    operating_range_C: [0, 345]
+    Cp_correlation:
+      values:
+        - { T_C: 50, Cp: 1.58 }
+        - { T_C: 100, Cp: 1.68 }
+        - { T_C: 150, Cp: 1.78 }
+        - { T_C: 200, Cp: 1.85 }
+        - { T_C: 250, Cp: 1.95 }
+        - { T_C: 300, Cp: 2.05 }
+
+  # ===== STEAM =====
+
+  steam:
+    label: "Steam (saturated & superheated)"
+    type: real_fluid
+    notes: |
+      Steam properties MUST come from CoolProp or steam tables.
+      Approximations are not acceptable for steam exergy calculations.
+      Key properties needed: h, s at (T, P).
+      
+      For quick estimates when CoolProp unavailable:
+      - Saturated steam at 10 bar: h ≈ 2778 kJ/kg, s ≈ 6.586 kJ/(kg·K)
+      - Saturated steam at 20 bar: h ≈ 2799 kJ/kg, s ≈ 6.340 kJ/(kg·K)
+      - Superheated steam at 10 bar, 250°C: h ≈ 2943 kJ/kg, s ≈ 6.926 kJ/(kg·K)
+    reference_table:
+      # Saturated steam properties (key pressure points)
+      - { P_bar: 1.0, T_sat_C: 99.6, h_f: 417.5, h_g: 2675, s_f: 1.303, s_g: 7.359 }
+      - { P_bar: 2.0, T_sat_C: 120.2, h_f: 504.7, h_g: 2707, s_f: 1.530, s_g: 7.127 }
+      - { P_bar: 4.0, T_sat_C: 143.6, h_f: 604.7, h_g: 2738, s_f: 1.777, s_g: 6.896 }
+      - { P_bar: 6.0, T_sat_C: 158.8, h_f: 670.5, h_g: 2757, s_f: 1.931, s_g: 6.760 }
+      - { P_bar: 8.0, T_sat_C: 170.4, h_f: 721.1, h_g: 2769, s_f: 2.046, s_g: 6.663 }
+      - { P_bar: 10.0, T_sat_C: 179.9, h_f: 762.6, h_g: 2778, s_f: 2.138, s_g: 6.586 }
+      - { P_bar: 15.0, T_sat_C: 198.3, h_f: 844.7, h_g: 2792, s_f: 2.315, s_g: 6.445 }
+      - { P_bar: 20.0, T_sat_C: 212.4, h_f: 908.6, h_g: 2799, s_f: 2.447, s_g: 6.340 }
+      - { P_bar: 30.0, T_sat_C: 233.8, h_f: 1008.3, h_g: 2803, s_f: 2.646, s_g: 6.186 }
+      - { P_bar: 40.0, T_sat_C: 250.4, h_f: 1087.4, h_g: 2800, s_f: 2.797, s_g: 6.070 }
+      - { P_bar: 60.0, T_sat_C: 275.6, h_f: 1213.7, h_g: 2784, s_f: 3.028, s_g: 5.890 }
+      - { P_bar: 80.0, T_sat_C: 295.0, h_f: 1317.1, h_g: 2758, s_f: 3.208, s_g: 5.745 }
+      - { P_bar: 100.0, T_sat_C: 311.0, h_f: 1408.0, h_g: 2725, s_f: 3.361, s_g: 5.615 }
+
+  # ===== REFRIGERANTS =====
+
+  refrigerants:
+    R134a:
+      label: "R134a (HFC-134a)"
+      type: real_fluid
+      typical_application: "medium temperature cooling"
+      normal_boiling_point_C: -26.1
+      critical_temp_C: 101.1
+      ODP: 0
+      GWP: 1430
+      typical_evap_temp_C: [-5, 10]
+      typical_cond_temp_C: [30, 50]
+
+    R410A:
+      label: "R410A"
+      type: real_fluid
+      typical_application: "HVAC, heat pumps"
+      normal_boiling_point_C: -51.6
+      critical_temp_C: 72.5
+      ODP: 0
+      GWP: 2088
+      typical_evap_temp_C: [-10, 10]
+      typical_cond_temp_C: [35, 55]
+
+    R744:
+      label: "R744 (CO₂)"
+      type: real_fluid
+      typical_application: "transcritical, low-temp"
+      normal_boiling_point_C: -78.5
+      critical_temp_C: 31.0
+      critical_pressure_bar: 73.8
+      ODP: 0
+      GWP: 1
+      notes: "Transcritical cycle above 31°C — gas cooler, not condenser"
+
+    NH3:
+      label: "Ammonia (R717)"
+      type: real_fluid
+      typical_application: "industrial refrigeration"
+      normal_boiling_point_C: -33.3
+      critical_temp_C: 132.3
+      ODP: 0
+      GWP: 0
+      notes: "High efficiency but toxic. Common in large industrial systems."
+
+    LiBr_H2O:
+      label: "Lithium Bromide / Water"
+      type: absorption_pair
+      typical_application: "absorption chiller"
+      typical_COP_single: [0.6, 0.8]
+      typical_COP_double: [1.0, 1.4]
+      notes: "Water is the refrigerant, LiBr is the absorbent"
+
+  # ===== FUELS =====
+
+  fuels:
+    natural_gas:
+      label: "Natural Gas"
+      LHV_kJ_kg: 47100
+      HHV_kJ_kg: 52200
+      chemical_exergy_kJ_kg: 51850
+      exergy_to_LHV_ratio: 1.04
+      CO2_emission_kg_per_kWh: 0.20
+      typical_price_eur_per_kWh: [0.03, 0.08]
+    
+    fuel_oil:
+      label: "Fuel Oil (Heavy)"
+      LHV_kJ_kg: 40600
+      chemical_exergy_kJ_kg: 42500
+      exergy_to_LHV_ratio: 1.06
+      CO2_emission_kg_per_kWh: 0.28
+
+    biomass_wood:
+      label: "Biomass (Wood chips)"
+      LHV_kJ_kg: 14400  # at 30% moisture
+      chemical_exergy_kJ_kg: 16500
+      exergy_to_LHV_ratio: 1.15
+      CO2_emission_kg_per_kWh: 0.0  # biogenic
+
+    lpg:
+      label: "LPG (Propane)"
+      LHV_kJ_kg: 46350
+      chemical_exergy_kJ_kg: 48800
+      exergy_to_LHV_ratio: 1.06
+
+    electricity:
+      label: "Electricity"
+      exergy_factor: 1.0  # electricity is pure exergy
+      notes: "1 kWh electricity = 1 kWh exergy (work equivalent)"
+      typical_price_eur_per_kWh: [0.06, 0.20]
+
+
+# ============================================================
+# USAGE RULES FOR TRAINING DATA
+# ============================================================
+rules:
+  - "When CoolProp/steam tables are available, use them. These are FALLBACK values."
+  - "For steam calculations, ALWAYS use the reference table or CoolProp — never approximate Cp."
+  - "For air/flue gas at moderate temperatures (<200°C), constant Cp is acceptable."
+  - "For air/flue gas at high temperatures (>200°C), use temperature-dependent Cp."
+  - "Always specify which fluid properties source is used in the Assumptions section."
+  - "Chemical exergy of fuels uses the exergy_to_LHV_ratio × LHV approach."
+  - "Electricity exergy = electrical energy (no conversion factor needed)."

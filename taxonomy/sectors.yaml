@@ -1,0 +1,162 @@
+# EntropyHunter — Industry Sector Taxonomy
+# Defines typical equipment combinations per industry
+# Used for generating realistic factory-level analysis scenarios
+
+sectors:
+
+  food_and_beverage:
+    label: "Food & Beverage"
+    typical_equipment:
+      - { type: boiler, subtypes: [steam_firetube, steam_watertube], purpose: "process steam, CIP" }
+      - { type: chiller, subtypes: [screw, reciprocating], purpose: "cold storage, process cooling" }
+      - { type: heat_exchanger, subtypes: [plate, shell_tube], purpose: "pasteurization, heat recovery" }
+      - { type: pump, subtypes: [centrifugal, positive_displacement], purpose: "fluid transfer, CIP" }
+      - { type: dryer, subtypes: [spray, belt, drum, fluidized_bed], purpose: "product drying" }
+      - { type: compressor, subtypes: [screw], purpose: "pneumatic conveying, packaging" }
+    typical_factory_sizes:
+      small: { equipment_count: 3-4, total_exergy_input_kW: [200, 500] }
+      medium: { equipment_count: 5-7, total_exergy_input_kW: [500, 2000] }
+      large: { equipment_count: 8-12, total_exergy_input_kW: [2000, 10000] }
+    key_processes: [drying, heating, cooling, steam_generation, cold_storage]
+    energy_intensity: high
+    typical_exergy_efficiency_pct: [20, 40]
+    integration_opportunities:
+      - "boiler flue gas → economizer → feedwater preheating"
+      - "chiller condenser heat → hot water for CIP"
+      - "dryer exhaust → heat exchanger → inlet air preheating"
+
+  chemical_and_petrochemical:
+    label: "Chemical & Petrochemical"
+    typical_equipment:
+      - { type: boiler, subtypes: [steam_watertube, waste_heat], purpose: "high-pressure process steam" }
+      - { type: compressor, subtypes: [centrifugal, screw], purpose: "process gas compression" }
+      - { type: heat_exchanger, subtypes: [shell_tube, double_pipe, spiral], purpose: "reactor cooling, heat recovery" }
+      - { type: pump, subtypes: [centrifugal, positive_displacement], purpose: "chemical transfer" }
+      - { type: steam_turbine, subtypes: [back_pressure, extraction], purpose: "power generation, pressure letdown" }
+      - { type: dryer, subtypes: [rotary, fluidized_bed, spray], purpose: "product drying" }
+    typical_factory_sizes:
+      small: { equipment_count: 4-5, total_exergy_input_kW: [500, 1500] }
+      medium: { equipment_count: 6-8, total_exergy_input_kW: [1500, 5000] }
+      large: { equipment_count: 10-15, total_exergy_input_kW: [5000, 50000] }
+    key_processes: [heating, cooling, steam_generation, compressed_air, chp]
+    energy_intensity: very_high
+    typical_exergy_efficiency_pct: [25, 45]
+    integration_opportunities:
+      - "reactor exothermic heat → steam generation"
+      - "compressor intercooling → process preheating"
+      - "steam turbine exhaust → absorption chiller"
+
+  pharmaceutical:
+    label: "Pharmaceutical"
+    typical_equipment:
+      - { type: boiler, subtypes: [steam_firetube, electric], purpose: "clean steam, HVAC" }
+      - { type: chiller, subtypes: [centrifugal, screw, water_cooled], purpose: "cleanroom cooling" }
+      - { type: compressor, subtypes: [scroll, screw], purpose: "oil-free compressed air" }
+      - { type: pump, subtypes: [centrifugal], purpose: "WFI, process fluid transfer" }
+      - { type: heat_exchanger, subtypes: [plate, shell_tube], purpose: "HVAC, process heat exchange" }
+      - { type: dryer, subtypes: [tray, fluidized_bed, spray], purpose: "API drying, granulation" }
+    typical_factory_sizes:
+      small: { equipment_count: 4-5, total_exergy_input_kW: [300, 800] }
+      medium: { equipment_count: 6-8, total_exergy_input_kW: [800, 3000] }
+    key_processes: [heating, cooling, steam_generation, compressed_air]
+    energy_intensity: medium
+    typical_exergy_efficiency_pct: [18, 35]
+    integration_opportunities:
+      - "chiller condenser heat → preheating HVAC air"
+      - "compressor waste heat → space heating"
+
+  textile:
+    label: "Textile"
+    typical_equipment:
+      - { type: boiler, subtypes: [steam_firetube, steam_watertube, biomass], purpose: "dyeing, finishing steam" }
+      - { type: heat_exchanger, subtypes: [plate, shell_tube, economizer], purpose: "hot water recovery" }
+      - { type: pump, subtypes: [centrifugal], purpose: "dye liquor circulation" }
+      - { type: dryer, subtypes: [conveyor, belt, infrared], purpose: "fabric drying" }
+      - { type: compressor, subtypes: [screw], purpose: "pneumatic systems" }
+    typical_factory_sizes:
+      small: { equipment_count: 3-4, total_exergy_input_kW: [200, 600] }
+      medium: { equipment_count: 5-7, total_exergy_input_kW: [600, 2000] }
+    key_processes: [heating, drying, steam_generation]
+    energy_intensity: high
+    typical_exergy_efficiency_pct: [15, 30]
+    integration_opportunities:
+      - "dryer exhaust → heat exchanger → boiler feedwater"
+      - "dye bath wastewater heat recovery"
+
+  metals_and_mining:
+    label: "Metals & Mining"
+    typical_equipment:
+      - { type: boiler, subtypes: [waste_heat, steam_watertube], purpose: "waste heat recovery, process steam" }
+      - { type: compressor, subtypes: [centrifugal, piston], purpose: "blast air, pneumatic tools" }
+      - { type: heat_exchanger, subtypes: [shell_tube, recuperator, finned_tube], purpose: "furnace heat recovery" }
+      - { type: steam_turbine, subtypes: [back_pressure, condensing], purpose: "power from waste heat" }
+      - { type: pump, subtypes: [centrifugal, submersible, vertical_turbine], purpose: "slurry, cooling water" }
+    typical_factory_sizes:
+      medium: { equipment_count: 4-6, total_exergy_input_kW: [1000, 5000] }
+      large: { equipment_count: 8-12, total_exergy_input_kW: [5000, 100000] }
+    key_processes: [heating, steam_generation, compressed_air]
+    energy_intensity: very_high
+    typical_exergy_efficiency_pct: [20, 40]
+
+  pulp_and_paper:
+    label: "Pulp & Paper"
+    typical_equipment:
+      - { type: boiler, subtypes: [biomass, steam_watertube, waste_heat], purpose: "black liquor, bark boiler" }
+      - { type: steam_turbine, subtypes: [back_pressure, extraction, condensing], purpose: "CHP, pressure letdown" }
+      - { type: dryer, subtypes: [drum, conveyor], purpose: "paper drying" }
+      - { type: heat_exchanger, subtypes: [shell_tube, economizer], purpose: "condensate, flue gas recovery" }
+      - { type: pump, subtypes: [centrifugal], purpose: "stock, white water" }
+      - { type: compressor, subtypes: [screw], purpose: "instrument air" }
+    typical_factory_sizes:
+      medium: { equipment_count: 5-7, total_exergy_input_kW: [2000, 8000] }
+      large: { equipment_count: 8-12, total_exergy_input_kW: [8000, 50000] }
+    key_processes: [drying, steam_generation, chp]
+    energy_intensity: very_high
+    typical_exergy_efficiency_pct: [25, 45]
+
+  cement_and_ceramics:
+    label: "Cement & Ceramics"
+    typical_equipment:
+      - { type: heat_exchanger, subtypes: [recuperator, finned_tube, air_cooled], purpose: "kiln exhaust recovery" }
+      - { type: compressor, subtypes: [centrifugal, screw], purpose: "kiln combustion air" }
+      - { type: boiler, subtypes: [waste_heat], purpose: "WHR steam generation" }
+      - { type: steam_turbine, subtypes: [back_pressure, orc], purpose: "power from WHR" }
+      - { type: pump, subtypes: [centrifugal], purpose: "cooling water, slurry" }
+      - { type: dryer, subtypes: [rotary], purpose: "raw material drying" }
+    typical_factory_sizes:
+      medium: { equipment_count: 4-6, total_exergy_input_kW: [3000, 15000] }
+      large: { equipment_count: 7-10, total_exergy_input_kW: [15000, 100000] }
+    key_processes: [heating, steam_generation, compressed_air]
+    energy_intensity: very_high
+    typical_exergy_efficiency_pct: [22, 38]
+
+  commercial_buildings:
+    label: "Commercial Buildings (HVAC)"
+    typical_equipment:
+      - { type: chiller, subtypes: [centrifugal, screw, air_cooled, water_cooled], purpose: "space cooling" }
+      - { type: boiler, subtypes: [condensing, hotwater], purpose: "space heating, DHW" }
+      - { type: pump, subtypes: [centrifugal, booster], purpose: "chilled/hot water circulation" }
+      - { type: heat_exchanger, subtypes: [plate], purpose: "free cooling, heat recovery" }
+      - { type: compressor, subtypes: [scroll], purpose: "VRF systems (DX)" }
+    typical_factory_sizes:
+      small: { equipment_count: 3-4, total_exergy_input_kW: [50, 200] }
+      medium: { equipment_count: 5-7, total_exergy_input_kW: [200, 1000] }
+      large: { equipment_count: 8-12, total_exergy_input_kW: [1000, 5000] }
+    key_processes: [heating, cooling]
+    energy_intensity: low
+    typical_exergy_efficiency_pct: [8, 25]
+
+  district_energy:
+    label: "District Energy / CHP"
+    typical_equipment:
+      - { type: steam_turbine, subtypes: [back_pressure, extraction, condensing], purpose: "power generation" }
+      - { type: boiler, subtypes: [steam_watertube, biomass, waste_heat], purpose: "steam supply" }
+      - { type: heat_exchanger, subtypes: [plate, shell_tube, economizer], purpose: "district heating, condensate" }
+      - { type: pump, subtypes: [centrifugal, booster], purpose: "district network circulation" }
+      - { type: chiller, subtypes: [absorption], purpose: "trigeneration cooling" }
+    typical_factory_sizes:
+      medium: { equipment_count: 4-6, total_exergy_input_kW: [2000, 10000] }
+      large: { equipment_count: 7-10, total_exergy_input_kW: [10000, 100000] }
+    key_processes: [steam_generation, chp, heating, cooling]
+    energy_intensity: high
+    typical_exergy_efficiency_pct: [30, 55]

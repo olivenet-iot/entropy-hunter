@@ -1,0 +1,164 @@
+# EntropyHunter — Operating Conditions Taxonomy
+# Equipment rarely operates at nominal design conditions.
+# These scenarios dramatically affect entropy generation.
+
+operating_modes:
+
+  full_load:
+    label: "Full Load (Design)"
+    description: "Equipment operating at or near nominal design capacity"
+    load_fraction: [0.90, 1.00]
+    frequency: "30-40% of operating hours in well-designed systems"
+    entropy_impact: "baseline — reference condition"
+    applicable_to: all
+
+  part_load:
+    label: "Part Load"
+    description: "Equipment operating below design capacity"
+    variants:
+      light_load:
+        load_fraction: [0.25, 0.50]
+        entropy_impact: "significant increase in specific entropy generation (kW/K per kW output)"
+        notes: "Many equipment types have poor exergy efficiency at low loads"
+      moderate_load:
+        load_fraction: [0.50, 0.75]
+        entropy_impact: "moderate increase in specific entropy generation"
+      near_full:
+        load_fraction: [0.75, 0.90]
+        entropy_impact: "slight increase, often within acceptable range"
+    applicable_to: all
+    equipment_specific_effects:
+      compressor:
+        - "VSD compressors maintain efficiency better at part load"
+        - "Load/unload compressors waste energy cycling"
+        - "Typical part-load penalty: 15-40% increase in specific energy"
+      boiler:
+        - "Turndown below 25% causes unstable combustion"
+        - "Flue gas losses increase proportionally at low fire"
+        - "Condensing boilers maintain better part-load efficiency"
+      chiller:
+        - "Centrifugal chillers surge below ~30% load"
+        - "VSD chillers efficient down to 20% load"
+        - "COP typically drops 10-25% at 50% load"
+      pump:
+        - "Throttling wastes energy as pressure drop"
+        - "VSD pumps follow affinity laws: P ∝ n³"
+        - "Operating away from BEP increases vibration and entropy"
+      heat_exchanger:
+        - "Reduced flow decreases Reynolds number"
+        - "Lower Re → worse heat transfer coefficient"
+        - "But lower velocity → less pressure drop entropy"
+      steam_turbine:
+        - "Isentropic efficiency drops at off-design conditions"
+        - "Extraction turbines more flexible than condensing"
+        - "Part-load penalty typically 3-8% efficiency points"
+      dryer:
+        - "Under-loaded dryers have high specific energy consumption"
+        - "Air-to-product ratio increases, more exhaust losses"
+
+  seasonal_variation:
+    label: "Seasonal Operating Conditions"
+    description: "Ambient conditions change dead state and equipment performance"
+    variants:
+      summer:
+        ambient_temp_C: [30, 45]
+        dead_state_T0_C: [30, 40]
+        effects:
+          - "Higher T₀ → lower Carnot factor for cooling"
+          - "Chiller COP drops significantly (condenser temp rises)"
+          - "Cooling tower approach temp increases"
+          - "Compressor inlet air density decreases → less mass flow"
+      winter:
+        ambient_temp_C: [-10, 10]
+        dead_state_T0_C: [0, 10]
+        effects:
+          - "Lower T₀ → higher Carnot factor for heating"
+          - "Boiler feedwater colder → more fuel needed"
+          - "Free cooling possible for chillers"
+          - "Heat pump COP decreases (larger temperature lift)"
+      mild:
+        ambient_temp_C: [15, 25]
+        dead_state_T0_C: [15, 25]
+        effects:
+          - "Near-design conditions for most equipment"
+          - "Standard dead state T₀ = 25°C applicable"
+    notes: |
+      CRITICAL: Dead state T₀ directly affects ALL exergy calculations.
+      Ex_heat = Q × (1 - T₀/T). Changing T₀ by 15°C can shift exergy
+      destruction by 5-15% for low-grade heat systems.
+
+  degraded_performance:
+    label: "Degraded / Aged Equipment"
+    description: "Equipment performance deteriorates over time"
+    degradation_patterns:
+      gradual:
+        label: "Gradual degradation"
+        causes: [fouling, scaling, corrosion, erosion, bearing_wear]
+        typical_timeline: "months to years"
+        exergy_efficiency_loss_pct_per_year: [0.5, 3.0]
+        entropy_signature: "steady upward trend in S_gen"
+      sudden:
+        label: "Sudden performance drop"
+        causes: [mechanical_failure, control_malfunction, seal_leak, valve_stuck]
+        typical_timeline: "hours to days"
+        exergy_efficiency_loss_pct: [5, 30]
+        entropy_signature: "step change in S_gen"
+      periodic:
+        label: "Periodic fluctuation"
+        causes: [load_cycling, ambient_variation, batch_process, control_hunting]
+        typical_timeline: "hours to weeks"
+        entropy_signature: "oscillating S_gen pattern"
+    equipment_specific_degradation:
+      compressor:
+        common_issues: [valve_leak, ring_wear, intercooler_fouling, oil_carryover]
+        efficiency_loss_range_pct: [2, 15]
+      boiler:
+        common_issues: [tube_fouling, scale_buildup, refractory_damage, burner_drift]
+        efficiency_loss_range_pct: [3, 12]
+      chiller:
+        common_issues: [condenser_fouling, refrigerant_leak, compressor_wear, tube_scaling]
+        efficiency_loss_range_pct: [5, 25]
+      pump:
+        common_issues: [impeller_erosion, seal_leak, bearing_wear, cavitation_damage]
+        efficiency_loss_range_pct: [3, 20]
+      heat_exchanger:
+        common_issues: [fouling, scaling, tube_leak, gasket_failure, corrosion]
+        efficiency_loss_range_pct: [5, 30]
+        fouling_factors:
+          clean: 0.0000  # m²K/W
+          light_fouling: 0.0001
+          moderate_fouling: 0.0003
+          heavy_fouling: 0.0005
+          severe_fouling: 0.001
+      steam_turbine:
+        common_issues: [blade_erosion, seal_wear, deposit_buildup, misalignment]
+        efficiency_loss_range_pct: [2, 10]
+      dryer:
+        common_issues: [heat_leak, insulation_damage, duct_blockage, sensor_drift]
+        efficiency_loss_range_pct: [5, 20]
+
+  startup_shutdown:
+    label: "Startup / Shutdown Transients"
+    description: "Transient periods with high specific entropy generation"
+    notes: |
+      Not modeled in v0.1 — steady state assumed.
+      Consider for v0.3: startup losses can be 10-30% of daily energy
+      in batch processes.
+    applicable_to: [boiler, steam_turbine, dryer]
+
+# Scenario generation matrix for training data
+# Each training example should specify one or more of these conditions
+scenario_tags:
+  - full_load_design          # nominal conditions
+  - part_load_50pct           # 50% load
+  - part_load_75pct           # 75% load
+  - summer_hot_ambient        # T₀ = 35°C
+  - winter_cold_ambient       # T₀ = 5°C
+  - fouled_moderate           # moderate degradation
+  - fouled_severe             # severe degradation
+  - post_maintenance          # freshly cleaned/repaired
+  - overloaded                # above design capacity (stress)
+
+# v0.1 scope: full_load_design + part_load_50pct + part_load_75pct + fouled_moderate
+# v0.2 adds: seasonal variants + severe degradation
+# v0.3 adds: startup/shutdown + transient analysis

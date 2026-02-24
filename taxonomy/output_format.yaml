@@ -1,0 +1,219 @@
+# EntropyHunter — Output Format Specification
+# Defines how the model should structure its analysis responses.
+# Consistency here = consistent training data = stable model behavior.
+
+# ============================================================
+# PRINCIPLE: Every response follows the same skeleton.
+# Sections are included or excluded based on analysis type,
+# but the ordering and formatting never changes.
+# ============================================================
+
+output_formats:
+
+  # ──────────────────────────────────────────────
+  # FORMAT A: Single Equipment Analysis
+  # Used by: basic_exergy, exergoeconomic, EGM
+  # ──────────────────────────────────────────────
+  single_equipment:
+    sections:
+      - id: header
+        label: "Analysis Header"
+        required: true
+        format: |
+          ## {analysis_type}: {equipment_type} ({subtype})
+          **Dead state:** T₀ = {T0}°C ({T0_K} K), P₀ = {P0} kPa
+          **Operating condition:** {operating_mode}
+
+      - id: assumptions
+        label: "Assumptions & Properties"
+        required: true
+        format: |
+          ### Assumptions
+          - {numbered list of key assumptions}
+          - Fluid properties: {source}
+          - Reference: {methodology reference}
+
+      - id: exergy_balance
+        label: "Exergy Balance"
+        required: true
+        format: |
+          ### Exergy Balance
+          | Parameter | Value | Unit |
+          |-----------|-------|------|
+          | Exergy input (Ex_in) | {value} | kW |
+          | Exergy output (Ex_out) | {value} | kW |
+          | Exergy destruction (Ex_d) | {value} | kW |
+          | Exergy efficiency (η_ex) | {value} | % |
+
+      - id: entropy_generation
+        label: "Entropy Generation"
+        required_for: [basic_exergy, entropy_generation]
+        format: |
+          ### Entropy Generation (Gouy-Stodola)
+          - S_gen = Ex_d / T₀ = {value} kW/K
+          - Verification: T₀ × S_gen = {value} kW ≈ Ex_d = {value} kW ✓
+          - Bejan number (N_s) = Ex_d / Ex_in = {value} → Grade: {grade}
+          
+          **Mechanism Decomposition:**
+          | Mechanism | S_gen (kW/K) | Share (%) |
+          |-----------|-------------|-----------|
+          | Heat transfer | {value} | {pct} |
+          | Pressure drop | {value} | {pct} |
+          | Mixing / chemical | {value} | {pct} |
+          | **Dominant:** | {mechanism} | |
+
+      - id: avoidable_unavoidable
+        label: "Avoidable/Unavoidable Split"
+        required_for: [basic_exergy]
+        format: |
+          ### Avoidable / Unavoidable Decomposition
+          | Component | Value (kW) | Share (%) |
+          |-----------|-----------|-----------|
+          | Avoidable (I_AV) | {value} | {pct} |
+          | Unavoidable (I_UN) | {value} | {pct} |
+          | Total destruction | {value} | 100 |
+          
+          Reference: {subtype} best practice η_ex = {ref_value}%
+
+      - id: exergoeconomic
+        label: "Exergoeconomic Analysis"
+        required_for: [exergoeconomic]
+        format: |
+          ### Exergoeconomic Analysis (SPECO)
+          | Parameter | Value | Unit |
+          |-----------|-------|------|
+          | Investment cost rate (Ż) | {value} | EUR/h |
+          | Destruction cost rate (Ċ_D) | {value} | EUR/h |
+          | Total cost rate | {value} | EUR/h |
+          | Exergoeconomic factor (f) | {value} | - |
+          | Relative cost difference (r) | {value} | - |
+          | Product cost (c_P) | {value} | EUR/kWh |
+          
+          **Strategy:** {invest/parametric/structural/downsize/maintain}
+          **Reasoning:** {brief explanation of f-r decision}
+
+      - id: recommendations
+        label: "Improvement Recommendations"
+        required: true
+        format: |
+          ### Recommendations
+          1. **{action}** — Expected improvement: {impact}
+          2. **{action}** — Expected improvement: {impact}
+          3. **{action}** — Expected improvement: {impact}
+          
+          **Priority focus:** {dominant entropy source or cost driver}
+
+      - id: summary
+        label: "One-line Summary"
+        required: true
+        format: |
+          ### Summary
+          {One sentence capturing the key finding and primary recommendation.}
+
+  # ──────────────────────────────────────────────
+  # FORMAT B: Factory / Multi-Equipment Analysis
+  # Used by: pinch, advanced_exergy, thermoeconomic
+  # ──────────────────────────────────────────────
+  factory_analysis:
+    sections:
+      - id: header
+        required: true
+        format: |
+          ## Factory Analysis: {factory_name} ({sector})
+          **Equipment count:** {n}
+          **Dead state:** T₀ = {T0}°C, P₀ = {P0} kPa
+
+      - id: equipment_summary
+        required: true
+        format: |
+          ### Equipment Overview
+          | # | Equipment | Type | Subtype | Ex_d (kW) | η_ex (%) | N_s | Grade |
+          |---|-----------|------|---------|-----------|----------|-----|-------|
+          {rows}
+
+      - id: aggregate_metrics
+        required: true
+        format: |
+          ### Factory Aggregates
+          - Total exergy input: {value} kW
+          - Total exergy output: {value} kW
+          - Total exergy destruction: {value} kW
+          - Factory exergy efficiency: {value}%
+          - Total entropy generation: {value} kW/K
+
+      - id: hotspots
+        required: true
+        format: |
+          ### Exergy Destruction Hotspots
+          1. **{equipment}** — {value} kW ({pct}% of total) — Priority: {HIGH/MEDIUM/LOW}
+          2. ...
+
+      - id: analysis_specific
+        label: "Analysis-specific section"
+        notes: "Pinch results, EN/EX decomposition, f/r matrix, etc."
+
+      - id: integration_opportunities
+        required: true
+        format: |
+          ### Integration Opportunities
+          1. **{source} → {sink}** — Potential recovery: {value} kW
+          2. ...
+
+      - id: recommendations
+        required: true
+
+      - id: summary
+        required: true
+
+  # ──────────────────────────────────────────────
+  # FORMAT C: What-if Comparison
+  # ──────────────────────────────────────────────
+  comparison:
+    sections:
+      - id: header
+        format: "## What-if Analysis: {equipment} — {scenario_description}"
+      - id: comparison_table
+        format: |
+          ### Baseline vs Scenario
+          | Parameter | Baseline | Scenario | Delta | Change (%) |
+          |-----------|----------|----------|-------|------------|
+          {rows}
+      - id: savings
+        format: |
+          ### Projected Savings
+          - Annual energy savings: {value} kWh/year
+          - Annual cost savings: {value} EUR/year
+          - Exergy efficiency improvement: {value} percentage points
+      - id: recommendations
+      - id: summary
+
+
+# ============================================================
+# FORMATTING RULES (apply to ALL formats)
+# ============================================================
+formatting_rules:
+  numbers:
+    - "Round to 2 decimal places for kW, kW/K, EUR/h"
+    - "Round to 1 decimal place for percentages"
+    - "Round to 3 decimal places for Bejan number, f-factor, r-factor"
+    - "Use period (.) as decimal separator, never comma"
+  units:
+    - "Always include units in tables and inline values"
+    - "Temperatures: °C for display, K for calculations (show both when relevant)"
+    - "Pressure: bar for display, kPa for calculations"
+    - "Power: kW (never W or MW unless >10,000 kW)"
+    - "Entropy generation: kW/K"
+    - "Cost rates: EUR/h"
+    - "Energy costs: EUR/kWh"
+  language:
+    - "English for all v0.1 training data"
+    - "Technical terminology follows Bejan/Tsatsaronis conventions"
+    - "Abbreviations: Ex (exergy), S_gen (entropy generation), η_ex (exergy efficiency)"
+    - "Greek letters written as words in markdown: eta_ex, not η_ex in code"
+  structure:
+    - "Always use markdown tables for numerical results"
+    - "Always use numbered lists for recommendations"
+    - "Always include units"
+    - "Always show Gouy-Stodola verification when S_gen is calculated"
+    - "Always state dead state explicitly"
+    - "Never skip the one-line summary at the end"
