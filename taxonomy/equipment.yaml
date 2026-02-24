@@ -1,0 +1,252 @@
+# EntropyHunter Equipment Taxonomy
+# Source: ExergyLab engine layer (7 equipment types, 48 subtypes)
+
+equipment:
+  compressor:
+    label: "Kompresör / Compressor"
+    subtypes:
+      - id: screw
+        label: "Vidalı Kompresör"
+        typical_capacity_kW: [15, 37, 55, 75, 110, 160, 250]
+        typical_efficiency_pct: [65, 85]
+        typical_exergy_destruction_kW: [5, 50]
+      - id: piston
+        label: "Pistonlu Kompresör"
+        typical_capacity_kW: [5, 15, 30, 55, 75]
+        typical_efficiency_pct: [55, 78]
+        typical_exergy_destruction_kW: [3, 30]
+      - id: scroll
+        label: "Scroll Kompresör"
+        typical_capacity_kW: [5, 10, 20, 37]
+        typical_efficiency_pct: [60, 80]
+        typical_exergy_destruction_kW: [2, 15]
+      - id: centrifugal
+        label: "Santrifüj Kompresör"
+        typical_capacity_kW: [75, 160, 250, 500, 1000]
+        typical_efficiency_pct: [70, 88]
+        typical_exergy_destruction_kW: [20, 150]
+    parameters:
+      inlet_temp_C: { min: 10, max: 45, typical: [15, 20, 25, 30, 35, 40] }
+      discharge_pressure_bar: { min: 4, max: 16, typical: [6, 7, 8, 10, 12, 14] }
+      power_input_kW: { min: 5, max: 500, typical: [15, 37, 55, 75, 110, 160, 250] }
+      isentropic_efficiency_pct: { min: 50, max: 90, typical: [55, 60, 65, 70, 75, 80, 85] }
+      flow_rate_m3_min: { min: 0.5, max: 100, typical: [1, 2, 5, 10, 20, 50] }
+    unavoidable_ref:
+      screw: { efficiency_pct: 88 }
+      piston: { efficiency_pct: 82 }
+      scroll: { efficiency_pct: 85 }
+      centrifugal: { efficiency_pct: 90 }
+
+  boiler:
+    label: "Kazan / Boiler"
+    subtypes:
+      - id: steam_firetube
+        label: "Ateş Borulu Buhar Kazanı"
+        typical_capacity_kW: [250, 500, 1000, 2000, 5000]
+        typical_efficiency_pct: [25, 45]  # exergy efficiency
+        typical_exergy_destruction_kW: [100, 2000]
+      - id: steam_watertube
+        label: "Su Borulu Buhar Kazanı"
+        typical_capacity_kW: [500, 1000, 2000, 5000, 10000]
+        typical_efficiency_pct: [28, 48]
+        typical_exergy_destruction_kW: [200, 5000]
+      - id: hotwater
+        label: "Sıcak Su Kazanı"
+        typical_capacity_kW: [50, 100, 250, 500, 1000]
+        typical_efficiency_pct: [15, 30]
+        typical_exergy_destruction_kW: [30, 500]
+      - id: condensing
+        label: "Yoğuşmalı Kazan"
+        typical_capacity_kW: [50, 100, 250, 500, 1000]
+        typical_efficiency_pct: [30, 50]
+        typical_exergy_destruction_kW: [20, 400]
+      - id: waste_heat
+        label: "Atık Isı Kazanı"
+        typical_capacity_kW: [100, 500, 1000, 2000]
+        typical_efficiency_pct: [20, 40]
+        typical_exergy_destruction_kW: [50, 1000]
+      - id: electric
+        label: "Elektrikli Kazan"
+        typical_capacity_kW: [50, 100, 250, 500]
+        typical_efficiency_pct: [25, 40]
+        typical_exergy_destruction_kW: [20, 300]
+      - id: biomass
+        label: "Biyokütle Kazanı"
+        typical_capacity_kW: [100, 250, 500, 1000, 2000]
+        typical_efficiency_pct: [20, 38]
+        typical_exergy_destruction_kW: [50, 1200]
+    parameters:
+      fuel_type: [natural_gas, fuel_oil, lpg, biomass_wood, biomass_pellet, electric]
+      thermal_capacity_kW: { min: 50, max: 10000, typical: [100, 250, 500, 1000, 2000, 5000] }
+      operating_pressure_bar: { min: 1, max: 30, typical: [4, 6, 8, 10, 15, 20, 25] }
+      stack_temperature_C: { min: 80, max: 350, typical: [120, 150, 180, 200, 250, 300] }
+      feedwater_temperature_C: { min: 10, max: 105, typical: [15, 40, 60, 80, 100] }
+      thermal_efficiency_pct: { min: 70, max: 99, typical: [75, 80, 85, 88, 90, 92, 95] }
+
+  chiller:
+    label: "Chiller / Soğutma Grubu"
+    subtypes:
+      - id: screw
+        label: "Vidalı Chiller"
+        typical_capacity_kW: [100, 200, 500, 1000]
+        typical_cop: [3.5, 5.5]
+      - id: centrifugal
+        label: "Santrifüj Chiller"
+        typical_capacity_kW: [500, 1000, 2000, 5000]
+        typical_cop: [4.0, 6.5]
+      - id: scroll
+        label: "Scroll Chiller"
+        typical_capacity_kW: [20, 50, 100, 200]
+        typical_cop: [3.0, 5.0]
+      - id: reciprocating
+        label: "Pistonlu Chiller"
+        typical_capacity_kW: [50, 100, 200]
+        typical_cop: [3.0, 4.5]
+      - id: absorption
+        label: "Absorpsiyonlu Chiller"
+        typical_capacity_kW: [100, 300, 500, 1000, 2000]
+        typical_cop: [0.7, 1.4]
+      - id: air_cooled
+        label: "Hava Soğutmalı Chiller"
+        typical_capacity_kW: [20, 50, 100, 200, 500]
+        typical_cop: [2.5, 4.0]
+      - id: water_cooled
+        label: "Su Soğutmalı Chiller"
+        typical_capacity_kW: [100, 300, 500, 1000, 2000]
+        typical_cop: [4.0, 6.0]
+    parameters:
+      cooling_capacity_kW: { min: 20, max: 5000, typical: [50, 100, 200, 500, 1000, 2000] }
+      evaporator_temp_C: { min: -10, max: 15, typical: [-5, 0, 2, 5, 7, 10, 12] }
+      condenser_temp_C: { min: 25, max: 50, typical: [30, 35, 38, 40, 45] }
+      cop: { min: 0.5, max: 7.0, typical: [2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0] }
+      refrigerant: [R134a, R410A, R407C, R744, R1234ze, LiBr_H2O, NH3]
+
+  pump:
+    label: "Pompa / Pump"
+    subtypes:
+      - id: centrifugal
+        label: "Santrifüj Pompa"
+      - id: positive_displacement
+        label: "Pozitif Deplasmalı Pompa"
+      - id: submersible
+        label: "Dalgıç Pompa"
+      - id: vertical_turbine
+        label: "Dikey Türbin Pompa"
+      - id: booster
+        label: "Basınç Artırıcı Pompa"
+      - id: vacuum
+        label: "Vakum Pompası"
+    parameters:
+      flow_rate_m3_h: { min: 1, max: 1000, typical: [5, 10, 20, 50, 100, 200, 500] }
+      head_m: { min: 5, max: 200, typical: [10, 20, 30, 50, 80, 100, 150] }
+      motor_power_kW: { min: 0.75, max: 200, typical: [1.5, 3, 5.5, 11, 22, 37, 55, 75] }
+      pump_efficiency_pct: { min: 40, max: 90, typical: [50, 55, 60, 65, 70, 75, 80, 85] }
+      motor_efficiency_pct: { min: 80, max: 97, typical: [85, 88, 90, 92, 94] }
+      fluid_temp_C: { min: 5, max: 95, typical: [15, 25, 40, 60, 80] }
+
+  heat_exchanger:
+    label: "Isı Eşanjörü / Heat Exchanger"
+    subtypes:
+      - id: shell_tube
+        label: "Boru Demeti Eşanjör"
+      - id: plate
+        label: "Plakalı Eşanjör"
+      - id: air_cooled
+        label: "Hava Soğutmalı Eşanjör"
+      - id: double_pipe
+        label: "Çift Borulu Eşanjör"
+      - id: spiral
+        label: "Spiral Eşanjör"
+      - id: economizer
+        label: "Ekonomizer"
+      - id: recuperator
+        label: "Reküperatör"
+      - id: finned_tube
+        label: "Kanatlı Borulu Eşanjör"
+    parameters:
+      hot_inlet_temp_C: { min: 50, max: 600, typical: [80, 120, 150, 200, 300, 400, 500] }
+      hot_outlet_temp_C: { min: 30, max: 400, typical: [40, 60, 80, 100, 150, 200] }
+      cold_inlet_temp_C: { min: 5, max: 120, typical: [10, 15, 20, 30, 50, 80] }
+      cold_outlet_temp_C: { min: 20, max: 250, typical: [40, 60, 80, 100, 120, 150] }
+      heat_duty_kW: { min: 10, max: 5000, typical: [50, 100, 250, 500, 1000, 2000] }
+      pressure_drop_bar: { min: 0.05, max: 3.0, typical: [0.1, 0.2, 0.5, 1.0, 2.0] }
+      fluid_hot: [water, steam, flue_gas, therminol, air, thermal_oil]
+      fluid_cold: [water, glycol_solution, air, refrigerant, process_fluid]
+
+  steam_turbine:
+    label: "Buhar Türbini / Steam Turbine"
+    subtypes:
+      - id: back_pressure
+        label: "Karşı Basınçlı Türbin"
+      - id: condensing
+        label: "Yoğuşmalı Türbin"
+      - id: extraction
+        label: "Ara Çekmeli Türbin"
+      - id: orc
+        label: "ORC Türbini"
+      - id: micro_turbine
+        label: "Mikro Türbin"
+    parameters:
+      inlet_pressure_bar: { min: 5, max: 120, typical: [10, 15, 20, 30, 40, 60, 80, 100] }
+      inlet_temp_C: { min: 150, max: 560, typical: [180, 200, 250, 300, 350, 400, 450, 500, 540] }
+      outlet_pressure_bar: { min: 0.04, max: 10, typical: [0.05, 0.1, 0.5, 1.0, 2.0, 4.0, 6.0] }
+      mass_flow_kg_s: { min: 0.5, max: 200, typical: [1, 2, 5, 10, 20, 50, 100] }
+      isentropic_efficiency_pct: { min: 55, max: 90, typical: [60, 65, 70, 75, 80, 85] }
+      generator_efficiency_pct: { min: 88, max: 98, typical: [92, 94, 95, 96, 97] }
+
+  dryer:
+    label: "Kurutma Fırını / Dryer"
+    subtypes:
+      - id: convective
+        label: "Konvektif Kurutucu"
+      - id: rotary
+        label: "Döner Kurutucu"
+      - id: fluidized_bed
+        label: "Akışkan Yatak Kurutucu"
+      - id: spray
+        label: "Sprey Kurutucu"
+      - id: belt
+        label: "Bantlı Kurutucu"
+      - id: heat_pump
+        label: "Isı Pompalı Kurutucu"
+      - id: infrared
+        label: "Kızılötesi Kurutucu"
+      - id: drum
+        label: "Tambur Kurutucu"
+      - id: conveyor
+        label: "Konveyör Kurutucu"
+      - id: tray
+        label: "Tepsi Kurutucu"
+      - id: microwave
+        label: "Mikrodalga Kurutucu"
+    parameters:
+      inlet_air_temp_C: { min: 40, max: 250, typical: [60, 80, 100, 120, 150, 180, 200] }
+      outlet_air_temp_C: { min: 30, max: 120, typical: [40, 50, 60, 70, 80] }
+      product_flow_kg_h: { min: 10, max: 5000, typical: [50, 100, 200, 500, 1000, 2000] }
+      initial_moisture_pct: { min: 10, max: 90, typical: [20, 30, 40, 50, 60, 70, 80] }
+      final_moisture_pct: { min: 1, max: 20, typical: [2, 5, 8, 10, 12, 15] }
+      thermal_input_kW: { min: 20, max: 2000, typical: [50, 100, 200, 500, 1000] }
+
+# Reference constants from ExergyLab engines
+constants:
+  dead_state:
+    T0_K: 298.15
+    T0_C: 25.0
+    P0_kPa: 101.325
+  
+  bejan_grades:
+    A: { max_Ns: 0.15, label: "Excellent" }
+    B: { max_Ns: 0.30, label: "Good" }
+    C: { max_Ns: 0.50, label: "Average" }
+    D: { max_Ns: 0.70, label: "Poor" }
+    F: { max_Ns: 1.01, label: "Critical" }
+  
+  entropy_decomposition:
+    # (f_heat_transfer, f_pressure_drop, f_mixing) per equipment type
+    compressor: [0.25, 0.70, 0.05]
+    boiler: [0.20, 0.05, 0.75]
+    chiller: [0.55, 0.35, 0.10]
+    pump: [0.10, 0.85, 0.05]
+    heat_exchanger: [0.80, 0.15, 0.05]
+    steam_turbine: [0.15, 0.75, 0.10]
+    dryer: [0.45, 0.10, 0.45]

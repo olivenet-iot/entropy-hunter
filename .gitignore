@@ -1,0 +1,50 @@
+# Data (uploaded to HuggingFace separately)
+data/v*/
+data/rejected/
+*.jsonl
+*.parquet
+
+# Model artifacts
+training/output/
+training/checkpoints/
+*.bin
+*.safetensors
+*.gguf
+
+# Eval results (kept locally, summaries committed)
+eval/results/*.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.eggs/
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets
+.env
+*.key
+
+# Wandb
+wandb/
+
+# Jupyter
+.ipynb_checkpoints/

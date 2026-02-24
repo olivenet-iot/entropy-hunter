@@ -1,0 +1,218 @@
+# EntropyHunter Analysis Types Taxonomy
+# Maps to ExergyLab's 7 analysis engines + supplementary types
+
+analysis_types:
+
+  # === PRIMARY (ExergyLab engine 1:1 mapping) ===
+
+  basic_exergy:
+    id: A
+    label: "Temel Exergy Analizi"
+    exergylab_source: "analyze_{equipment}() + core.py"
+    difficulty: 1
+    version: "v0.1"
+    description: |
+      Single equipment exergy balance: input, output, destruction, efficiency.
+      Includes AV/UN decomposition using Tsatsaronis reference values.
+    output_fields:
+      - exergy_in_kW
+      - exergy_out_kW
+      - exergy_destroyed_kW
+      - exergy_efficiency_pct
+      - avoidable_kW
+      - unavoidable_kW
+      - avoidable_ratio_pct
+      - recommendations
+
+  exergoeconomic:
+    id: B
+    label: "Exergoekonomik Analiz (SPECO)"
+    exergylab_source: "exergoeconomic.py"
+    difficulty: 2
+    version: "v0.1"
+    description: |
+      SPECO methodology: Z_dot, C_dot_D, f-factor, r-factor, product cost.
+      Investment vs. destruction cost trade-off analysis.
+    output_fields:
+      - Z_dot_eur_h
+      - C_dot_destruction_eur_h
+      - f_factor
+      - r_factor
+      - c_product_eur_kWh
+      - total_cost_rate_eur_h
+      - strategy_recommendation
+
+  pinch_analysis:
+    id: C
+    label: "Pinch Analizi (Linnhoff)"
+    exergylab_source: "pinch.py"
+    difficulty: 2
+    version: "v0.2"
+    multi_equipment: true
+    description: |
+      Heat integration analysis: hot/cold stream matching, pinch point,
+      minimum utility requirements, HEN suggestions.
+    output_fields:
+      - pinch_temperature_C
+      - QH_min_kW
+      - QC_min_kW
+      - max_heat_recovery_kW
+      - savings_pct
+      - hen_matches
+
+  advanced_exergy:
+    id: D
+    label: "İleri Exergy Dekompozisyonu (Tsatsaronis)"
+    exergylab_source: "advanced_exergy.py"
+    difficulty: 3
+    version: "v0.2"
+    multi_equipment: true
+    min_equipment: 3
+    description: |
+      EN/EX (endogenous/exogenous) + AV/UN 4-quadrant decomposition.
+      Interaction network analysis between equipment.
+    output_fields:
+      - I_EN_kW
+      - I_EX_kW
+      - I_AV_EN_kW
+      - I_AV_EX_kW
+      - I_UN_EN_kW
+      - I_UN_EX_kW
+      - interaction_network
+      - priority_ranking
+
+  entropy_generation:
+    id: E
+    label: "Entropi Üretim Minimizasyonu (EGM)"
+    exergylab_source: "entropy_generation.py"
+    difficulty: 3
+    version: "v0.1"
+    description: |
+      Bejan N_s number, Gouy-Stodola theorem, mechanism decomposition
+      (heat transfer / pressure drop / mixing).
+    output_fields:
+      - S_gen_kW_K
+      - N_s
+      - N_s_grade
+      - S_gen_heat_transfer_kW_K
+      - S_gen_pressure_drop_kW_K
+      - S_gen_mixing_kW_K
+      - dominant_mechanism
+      - improvement_potential_pct
+
+  thermoeconomic_optimization:
+    id: F
+    label: "Termoekonomik Optimizasyon"
+    exergylab_source: "thermoeconomic_optimization.py"
+    difficulty: 3
+    version: "v0.2"
+    multi_equipment: true
+    description: |
+      f/r decision matrix, investment strategy determination,
+      cost-benefit analysis, simple payback period.
+    output_fields:
+      - strategy  # invest/parametric/structural/downsize/maintain
+      - C_savings_annual_eur
+      - estimated_investment_eur
+      - simple_payback_years
+      - recommended_actions
+
+  energy_management:
+    id: G
+    label: "Enerji Yönetimi (ISO 50001)"
+    exergylab_source: "energy_management.py"
+    difficulty: 2
+    version: "v0.2"
+    multi_equipment: true
+    description: |
+      ISO 50001 maturity assessment, 7 EnPI metrics,
+      7-dimension scoring, action plan generation.
+    output_fields:
+      - enpi_metrics
+      - maturity_score
+      - maturity_level
+      - action_plan
+      - total_potential_savings_eur
+
+  gap_analysis:
+    id: H
+    label: "3-Katmanlı Gap Analizi"
+    exergylab_source: "gap_analysis.py + process_exergy.py"
+    difficulty: 2
+    version: "v0.2"
+    description: |
+      Three-layer exergetic gap: minimum thermodynamic limit,
+      BAT reference, actual plant performance. ESI grading (A-F).
+    process_types:
+      - drying
+      - heating
+      - cooling
+      - steam_generation
+      - compressed_air
+      - chp
+      - cold_storage
+      - general_manufacturing
+    output_fields:
+      - minimum_exergy_kW
+      - bat_exergy_kW
+      - actual_exergy_kW
+      - total_gap_kW
+      - bat_gap_kW
+      - exergetic_sustainability_index
+      - grade
+
+  # === SUPPLEMENTARY ===
+
+  avoidable_unavoidable:
+    id: I
+    label: "AV/UN Ayrışımı"
+    exergylab_source: "core.py → compute_avoidable_split()"
+    difficulty: 1
+    version: "v0.1"
+
+  whatif_comparison:
+    id: J
+    label: "What-if Senaryo Karşılaştırma"
+    exergylab_source: "compare.py"
+    difficulty: 2
+    version: "v0.1"
+
+  hotspot_detection:
+    id: K
+    label: "Hotspot Tespiti"
+    exergylab_source: "factory.py → _identify_hotspots()"
+    difficulty: 1
+    version: "v0.1"
+
+  integration_opportunities:
+    id: L
+    label: "Entegrasyon Fırsatları"
+    exergylab_source: "factory.py → _detect_integration_opportunities()"
+    difficulty: 2
+    version: "v0.2"
+
+  fault_diagnosis:
+    id: M
+    label: "Exergy-Tabanlı Arıza Teşhisi"
+    exergylab_source: null  # NEW capability
+    difficulty: 3
+    version: "v0.3"
+
+  sankey_interpretation:
+    id: N
+    label: "Sankey Diyagramı Yorumlama"
+    exergylab_source: "factory_sankey_v2.py"
+    difficulty: 2
+    version: "v0.3"
+
+# Version coverage plan
+versions:
+  v0.1:
+    analysis_types: [A, B, E, I, J, K]
+    target_examples: 800
+  v0.2:
+    analysis_types: [A, B, C, D, E, F, G, H, I, J, K, L]
+    target_examples: 3000
+  v0.3:
+    analysis_types: [A, B, C, D, E, F, G, H, I, J, K, L, M, N]
+    target_examples: 5000
