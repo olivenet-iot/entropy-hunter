@@ -1,12 +1,14 @@
 # Data (uploaded to HuggingFace separately)
-data/v*/
-data/rejected/
+data/
 *.jsonl
 *.parquet
 
 # Model artifacts
+model/
+output/
 training/output/
 training/checkpoints/
+unsloth_compiled_cache/
 *.bin
 *.safetensors
 *.gguf

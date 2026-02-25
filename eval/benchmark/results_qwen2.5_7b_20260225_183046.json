@@ -1,0 +1,94 @@
+{
+  "model": "qwen2.5:7b",
+  "timestamp": "20260225_183046",
+  "num_tests": 5,
+  "results": [
+    {
+      "test_id": "basic-compressor-01",
+      "category": "basic_exergy",
+      "equipment": "compressor",
+      "difficulty": "easy",
+      "passed_checks": 2,
+      "total_checks": 5,
+      "checks": {
+        "dead_state": false,
+        "summary_table": true,
+        "json_block": false,
+        "recommendations": true,
+        "efficiency_physical": null,
+        "T2s_mentioned": false
+      },
+      "response_time_s": 217.2,
+      "response_length": 4887
+    },
+    {
+      "test_id": "basic-boiler-01",
+      "category": "basic_exergy",
+      "equipment": "boiler",
+      "difficulty": "medium",
+      "passed_checks": 2,
+      "total_checks": 4,
+      "checks": {
+        "dead_state": false,
+        "summary_table": true,
+        "json_block": false,
+        "efficiency_physical": null,
+        "waste_streams": true
+      },
+      "response_time_s": 237.9,
+      "response_length": 5438
+    },
+    {
+      "test_id": "exergoecon-chiller-01",
+      "category": "exergoeconomic",
+      "equipment": "chiller",
+      "difficulty": "hard",
+      "passed_checks": 3,
+      "total_checks": 5,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "crf_calc": true,
+        "cost_rate": true,
+        "f_factor": true
+      },
+      "response_time_s": 177.0,
+      "response_length": 4464
+    },
+    {
+      "test_id": "egm-compressor-01",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "medium",
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true
+      },
+      "response_time_s": 186.9,
+      "response_length": 3864
+    },
+    {
+      "test_id": "hotspot-factory-01",
+      "category": "hotspot_detection",
+      "equipment": "factory",
+      "difficulty": "hard",
+      "passed_checks": 3,
+      "total_checks": 5,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "recommendations": true,
+        "multi_equipment": true,
+        "ranking": true
+      },
+      "response_time_s": 240.9,
+      "response_length": 5170
+    }
+  ]
+}
