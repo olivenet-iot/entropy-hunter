@@ -17,7 +17,7 @@ ENGINE_DIR = EXERGYLAB_PATH / "engine"
 
 # === API Configuration ===
 # Teacher model for synthetic data generation
-TEACHER_MODEL = os.environ.get("TEACHER_MODEL", "claude-sonnet-4-5-20250514")
+TEACHER_MODEL = os.environ.get("TEACHER_MODEL", "claude-opus-4-6")
 TEACHER_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 # Fallback: use Claude Code CLI subprocess
