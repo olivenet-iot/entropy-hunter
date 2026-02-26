@@ -1,295 +1,135 @@
 # basic-pump-01
 Model: entropy-hunter
-Time: 408.1s
-Checks: 2/3
+Time: 269.6s
+Checks: 3/4
 
-## Exergy Analysis: Centrifugal Pump (Full Load)
+## Exergy Analysis: Centrifugal Pump (Full Load Operation)
 
-**Operating Condition:** Full Load
-**Operating Temperature:** 25°C (ambient)
-**Working Fluid:** Liquid Water
-**Dead State (T₀, P₀):** T₀ = 25.0°C (298.15 K), P₀ = 101.325 kPa
+**Operating Condition:** Full load — 7.5 kW motor, 50 m³/h flow rate, 30 m head
 
 ---
 
 ### Assumptions
 
 1. Steady-state, steady-flow conditions.
-2. Kinetic and potential exergy changes at system boundaries are negligible.
-3. Fluid is incompressible (ρ = 997 kg/m³ at 25°C).
-4. Electrical power input is pure work (exergy = energy).
-5. No heat exchange with surroundings (adiabatic pump).
-6. Pump hydraulic efficiency ηpump = 72%, motor efficiency ηmotor = 92%.
-7. Fluid temperature remains constant through the pump per steady-state, incompressible assumption → negligible thermal exergy change across pump.
-8. Gravitational acceleration g = 9.81 m/s².
+2. Fluid: Water at 25°C (ρ = 997 kg/m³, Cp = 4.18 kJ/(kg·K), incompressible).
+3. Gravitational acceleration g = 9.807 m/s².
+4. Pump operates adiabatically (negligible heat loss from pump casing).
+5. Electrical power input is pure work (exergy = energy).
+6. No kinetic or potential exergy changes at system boundary beyond the total head calculation.
+7. Hydraulic efficiency ηpump = 72% and motor efficiency ηmotor = 92% are given.
+8. The pump delivers the water to a point at 30 m elevation (static pressure rise only; no friction losses in this reference model).
+9. The useful output is the exergy imparted to the fluid as pressure rise (hydrostatic exergy of lift).
 
 ---
 
-### Step 1: Mass Flow Rate
+### Step-by-Step Calculation
 
-```
-ρ_water = 997 kg/m³ (at 25°C)
-Q = 50 m³/h = 50 / 3600 = 0.01389 m³/s
+#### Part A: Hydraulic Power & Exergy Output
 
-ṁ = ρ × Q = 997 × 0.01389
-ṁ = 13.87 kg/s
-```
+**Mass Flow Rate**
 
----
+$$\dot{m} = \rho \times \dot{V} = 997 \,\text{kg/m³} \times \frac{50}{3600} \,\text{m³/s}$$
+$$\dot{m} = 997 \times 0.013889 = 14.02 \, \text{kg/s}$$
 
-### Step 2: Hydraulic Power (Useful Output)
+**Hydraulic Power (Useful Product — Pressure Exergy)**
 
-The hydraulic power delivered to the fluid is:
+$$P_{hyd} = \dot{m} \times g \times H = 14.02 \times 9.807 \times 30$$
+$$P_{hyd} = 14.02 \times 294.21 = 4,126.65 \,\text{W}$$
 
-```
-P_hydraulic = ṁ × g × H
-P_hydraulic = 13.87 × 9.81 × 30
-P_hydraulic = 4086.5 W
-P_hydraulic = 4.087 kW
-```
+**Verification via Wire-to-Water Efficiency Chain**
 
-Cross-check with wire-to-water:
+Wire power in:
+$$P_{elec,in} = 7.5 \,\text{kW} = 7500\,\text{W}$$
 
-```
-P_wire_to_water = η_motor × η_pump × P_elec
-P_wire_to_water = 0.92 × 0.72 × 7.5
-P_wire_to_water = 6.48 kW
+Shaft power delivered by motor (useful shaft power):
+$$P_{shaft} = P_{elec,in} \times \eta_{motor} = 7500 \times 0.92 = 6900\,\text{W}$$
 
-Discrepancy: P_hydraulic (measured) vs WTW (calculated)
+Pump output hydraulic power:
+$$P_{hyd} = P_{shaft} \times \eta_{pump} = 6900 \times 0.72 = 4968\,\text{W}$$
 
-This is consistent with the problem statement that motor power input is given as 7.5 kW, which is rated; and pump hydraulic efficiency ηpump = 72%.
-```
+**Hydraulic Wire-to-Water Efficiency:**
 
-The **useful fluid power delivered** at system boundary is:
+$$\eta_{wire,hyd} = \frac{P_{hyd}}{P_{elec,in}} = \frac{4968}{7500} = 66.23\%$$
 
-```
-P_fluid_useful = ṁ × g × H
-P_fluid_useful = 13.87 × 9.81 × 30
-P_fluid_useful = 4086.5 W = 4.087 kW
-```
+This is **smaller** than the given ηpump × ηmotor (49.68%) but matches our calculated sequence — **the product of the two efficiencies equals the overall wire-to-water efficiency**:
 
-The **wire-to-water power ratio**:
+$$\eta_{wire,hyd} = 72\% \times 92\% = 0.72 \times 0.92 = 0.6624 = 66.24\%$$
 
-```
-η_WTW = P_fluid_useful / P_elec
-η_WTW = 4.087 / 7.5
-η_WTW = 0.545 → 54.5%
-```
+We use **ηpump × ηmotor = 66.24%** as the wire-to-water efficiency (product rule); hydraulic output of 4,968 W is correct and derived directly from motor shaft power × pump hydraulic efficiency.
 
----
+**Exergy of Water Stream Imparted (Product Exergy):**
 
-### Step 3: Exergy of Electrical Power Input (Fuel Exergy)
+For an incompressible fluid, the flow exergy equals pressure (hydrostatic) head exergy:
 
-Electrical power is pure work:
+$$\dot{E}_{ex,out} = P_{hyd} = 4968 \,\text{W} = 4.97 \,\text{kW}$$
 
-```
-Ex_fuel = P_elec = 7.5 kW
-```
+#### Part B: Exergy Input (Electrical Work)
 
----
+$$\dot{E}_{ex,in} = \dot{E}_{elec,in} = 7500 \,\text{W} = 7.50 \,\text{kW}$$
 
-### Step 4: Hydraulic Power Output as Product Exergy
+#### Part C: Exergy Deficit and Wire-to-Water Efficiency from First Principles
 
-For an incompressible fluid with negligible temperature rise, the hydraulic power is identical to the exergy imparted to the fluid stream (product exergy):
+$$\eta_{wire,hyd,calc} = \frac{\dot{E}_{ex,out}}{\dot{E}_{ex,in}} = \frac{4968}{7500} = 0.6623 = 66.23\%$$
 
-```
-Ex_product = P_hydraulic = 4.087 kW
-```
+#### Part D: Entropy Generation Rate
 
----
+Using the Bejan method (basic):
 
-### Step 5: Wire-to-Product Efficiency
+1. **Exergy input**: Electrical work → pure exergy
+2. **Exergy output**: Hydraulic pressure rise of incompressible fluid — purely mechanical with no temperature rise; this is "useful" but the entropy generated within a hydraulic pump from mechanical losses to heat and irreversibility must be estimated.
 
-```
-η_WTW_product = Ex_product / Ex_fuel
-η_WTW_product = 4.087 / 7.5
-η_WTW_product = 0.545 → 54.5%
-```
+For every kW input into a centrifugal pump, typical entropy generation is ~2.5–3.0 W/(K·kW) per internal mechanism/irreversibility (friction, cavitation risks even in steady-state).
 
-This matches our earlier calculation of wire-to-water efficiency.
+$$\dot{S}_gen = \eta_{wire,hyd}^{mech} \times \frac{\dot{E}_{in}}{T_0}$$
+
+Where $$\eta_{wire,hyd}^{mech} = 1 - \eta_{pump} \times \eta_{motor}$$ accounts for all internal irreversibilities:
+
+$$\eta_{wire,hyd}^{mech} = 1 - 66.24\% = 0.3376 = 33.76\%$$
+
+Then the entropy generated rate:
+
+$$\dot{S}_{gen} = 0.3376 \times \frac{7500}{298.15}$$
+$$\dot{S}_{gen} = 0.3376 \times 25.194 = 0.08506 \,\text{kW/K} = 85.06 \,\text{W/K}$$
+
+#### Part E: Second Law Efficiency (Exergy Quality Ratio)
+
+$$\eta_{II} = \frac{\dot{E}_{ex,out}}{\dot{E}_{in} + \dot{S}_{gen}}$$
+
+$$\eta_{II} = \frac{4968}{7500 + 0.08506}$$
+$$\eta_{II} = \frac{4968}{7500.08506} = 0.6623 / 1.00011332 = 66.22\%$$
 
 ---
 
-### Step 6: Exergy Destruction Decomposition
+### Summary Table — Exergy Analysis: Centrifugal Pump (Full Load)
 
-Using the Gouy-Stodola theorem:
-
-```
-Ex_d = Ex_fuel − Ex_product
-Ex_d = 7.5 − 4.087
-Ex_d = 3.413 kW
-```
-
-To decompose:
-
-- **Component of Wire-to-Water Loss (WTW Loss):** The difference between what the motor delivers to the pump and what we measure at system boundary:
-  ```
-  P_WTW_loss = P_elec × η_motor × η_pump − ṁ×g×H
-             = 7.5 × 0.92 × 0.72 − 4.087
-             = 5.316 − 4.087
-             = 1.229 kW
-  ```
-
-- **Component of Friction and Internal Losses within Pump:**
-  ```
-  P_pump_internal = ṁ×g×H × (1 − η_pump)
-                 = 4.087 × (1 − 0.72)
-                 = 4.087 × 0.28
-                 = 1.145 kW
-  ```
-
-- **Component of Motor Inefficiency (Converting Electrical to Mechanical):**
-  ```
-  P_motor_internal = ṁ×g×H − P_pump_actual
-                   = P_hydraulic − P_hydraulic_measured
-  ```
-
-  The motor efficiency loss is already embedded in the overall wire-to-water ηWTW. But we can say:
-  
-  ```
-  P_m_intrinsic = 7.5 × (1 − 0.92) = 7.5 × 0.08 = 0.6 kW
-  ```
-
-- **Total Friction + Motor Losses:**
-  ```
-  P_fric+motor_loss = 1.229 + 0.6 = 1.829 kW
-  ```
-
-- **Component of Excess Electricity (Not in Product):**
-  This is the remaining:
-  ```
-  P_excess = Ex_d − P_fric−motor
-            = 3.413 − 1.829
-            = 1.584 kW
-  ```
-
-  This is electricity input to the pump that, while contributing to WTW exergy destruction via motor losses, is not directly converted into product flow power.
+| **Item** | **Calculation** | **Result [kW]** |
+|----------|---------------------|---------------|
+| **Exergy Input (Fuel)** | Electrical Work | 7.50 |
+| **Exergy Output (Product)** | Pressure Exergy Rise of Incompressible Fluid | 4.97 |
+| **Wire-to-Water Exergy Efficiency** | ηelec × ηmotor = ηpump × ηmotor | 66.24% |
+| **Hydraulic Wire-to-Water Efficiency** (from direct chain) | P_hyd/P_elec | 66.23% |
+| **Entropy Generation Rate** | ex_out/(T₀×ex_in) = η_mech × (P_in/T₀) | 85.10 W/K = 0.0851 kW/K |
+| **Second Law Efficiency (Exergy Quality)** | η_II = ex_out / (ex_in + S_gen) | 66.22% |
 
 ---
 
-### Step 7: Avoidable / Unavoidable Exergy Destruction Decomposition
+### Assessment & Recommendations
 
-For a pump system:
+**Performance Grade:** A- (Excellent)
 
-- **Unavoidable = Friction (within pump stream) + Pump Core Losses inherent at ηpump:**
-  `````
-  Ex_unav = P_pump_internal = ṁ×g×H × (1 − η_pump)
-  Ex_unav = 4.087 × (1 − 0.72) = 4.087 × 0.28 = 1.145 kW
-  ````
+* The pump is operating well within its efficient range: ~66% wire-to-water, which covers the combined pump/motor efficiency losses.
+* At this high ηpump × ηmotor level (~66%), every improvement here will yield significant energy savings at this scale.
+* The small discrepancy between product chain (66.24%) and measured output (66.23%) is consistent with rounding differences; both confirm a robust 66%+ system efficiency.
 
-- **Avoidable = Motor inefficiency component:**
-  ```
-  Ex_av = P_motor_intrinsic = 7.5 × (1 − η_motor)
-         = 7.5 × (1 − 0.92) = 7.5 × 0.08
-         = 0.6 kW
-  ```
+**Energy Saving Opportunity:**
 
-- **Total Exergy Destruction:**
-  ```
-  Ex_d_total = Ex_unav + Ex_av = 1.145 + 0.600 = 1.745 kW
-  ```
+The exergy quality ratio η_II = 0.6622 means **33.78% of the fuel exergy** goes into irreversibility (friction, heat losses) and leaves no extra thermodynamic surplus to improve beyond perfect matching.
 
-  However, we measured total WTW = 3.413 kW, and the product is only 4.087 kW:
-  
-  The **real wire-to-water** decomposition relative to actual ηWTW (54.5%) provides:
-  
-  - Unavoidable: 1.145 / 3.413 = 33.5%
-  - Avoidable: 0.600 / 3.413 = 17.6%
+**Key Actions:**
+1. **Motor optimization**: If motor is not perfectly sized or variable speed is available — consider re-tuning for minimum full-load deviation.
+2. **VSD retrofit assessment**: For larger pumps or more stable flow scenarios, a VSD could reduce no-load and part-load losses significantly (even 7.5 kW motors can see ~10–20% savings).
+3. **Maintenance check**: Regular belt/alignment checks; replace old motor if its efficiency has drifted below 92%.
+4. **Cavitation prevention review**: For water at 25°C, cav is low risk but ensure all impellers and volutes are well-designed for this application.
 
-  So the breakdown is:
-
-  | Component      | Exergy (kW) | % of WTW |
-  |---------------|------------|---------|
-  | Unavoidable    | 1.145      | 33.5%   |
-  | Avoidable      | 0.600      | 17.6%   |
-  | Total Wire-to-Water | 3.413      | 100%    |
-
----
-
-### Step 8: What-If Scenario Analysis — Motor Upgrade
-
-**Scenario:** Replace motor with η_motor = 95% (state-of-the-art IE3 premium efficiency).
-
-```
-P_wire_to_water_new = ṁ × g × H / η_pump
-P_wire_to_water_new = P_hydraulic / 0.72
-P_wire_to_water_new = 4.087 / 0.72
-P_wire_to_water_new = 5.67 kW
-
-Ex_fuel_opt = P_wire_to_water_new / η_motor_opt
-Ex_fuel_opt = 5.67 / 0.95
-Ex_fuel_opt = 6.01 kW
-
-Ex_product (unchanged) = 4.087 kW
-Ex_d_optimized = Ex_fuel_opt − Ex_product
-Ex_d_optimized = 6.01 − 4.087
-Ex_d_optimized = 1.923 kW
-
-Improvement:
-ΔEx_d = 1.923 − 3.413 = -1.490 kW → 15% reduction in exergy destruction (energy waste)
-```
-
----
-
-### Step 9: Summary Table
-
-| **Parameter**                          | **Value**         | **Unit** |
-|---------------------------------------|------------------|---------|
-| Volume Flow Rate                       | 50               | m³/h    |
-| Total Head                             | 30               | m       |
-| Electrical Power Input                 | 7.5              | kW      |
-| Pump Hydraulic Efficiency (ηpump)       | 72%              | %       |
-| Motor Efficiency (ηmotor)              | 92%              | %       |
-| Wire-to-Water Productivity             | 0.545            | %       |
-| Fluid:                                 | Water, 25°C      |         |
-| Dead State:                            | T₀ = 25.0°C, P₀ = 101.325 kPa | |
-
----
-
-### Step 10: Exergy Analysis Summary
-
-**System:** Centrifugal Pump (Full Load)
-
-| **Step**        | **Calculation**                                          | **Result** |
-|-----------------|----------------------------------------------------------|-----------|
-| Mass Flow Rate  | ṁ = ρ × Q                                               | 13.87 kg/s|
-| Hydraulic Power | P_hydraulic = ṁ × g × H                                  | 4.09 kW   |
-| Product Exergy  | Ex_product = P_hydraulic                                 | 4.09 kW   |
-| Wire-to-Water   | η_WTW = P_hydraulic / P_elec                             | 54.5%     |
-| Fuel Exergy     | Ex_fuel = P_elec                                        | 7.5 kW    |
-| Exergy Destruc.| Ex_d = Ex_fuel − Ex_product                             | 3.41 kW   |
-| Decomposition:  | Unavoidable (friction): P_pump_internal = ṁ × g × H × (1−ηpump) | 1.15 kW|
-|                 | Avoidable (motor ineff): P_motor_intrinsic = P_elec − WTW_measured | 0.60 kW |
-|                 | Total Exergy Loss: Ex_d_total = Un + Av = 1.74 kW        |         |
-
-**Efficiency Breakdown:**
-- **Useful Hydraulic Efficiency:** η_hydraulic = ṁ × g × H / P_elec (at system boundary)
-- **Actual WTW Productivity Ratio:** η_WTW = Ex_product / Ex_fuel
-  - Measured WTW: 54.5% (consistent with rated values)
-
-**Improvement Scenario — Motor Upgrade:**
-  * η_motor improved to IE3 premium 95%
-  * Energy savings of ~20%, reduced exergy destruction by 15%.
-
----
-
-### Step 11: Recommendations
-
-1. **Motor Replacement:** Upgrade from standard (72%) motor to IE3 premium (≥95% efficiency). This achieves the stated improvement factor with minimal physical intervention.
-2. **Motor Maintenance:** Ensure that existing motor is operating within rated load range for highest η.
-3. **Energy Benchmarking:** Establish baseline energy consumption and track savings against upgrade implementation date.
-
-**Estimated Annual Energy Savings:**
-- At 750 h/year full-load operation:
-```
-Savings = (Ex_fuel − Ex_fuel_opt) × h/year
-Savings = (6.01 − 3.41) × 750
-Savings = 2.60 × 750 = 1950 kW-h ≈ 1.95 kWh per cycle
-```
-
-Annual fuel cost savings at e.g., 0.08 EUR/kWh:
-```
-Cost_savings = 1.95 × 0.08 × 365 → ~60 EUR/year (at full-load duty)
-```
-
-The **motor upgrade delivers an excellent return on investment**, with immediate reduction in specific exergy loss and long-term energy savings.
+With a pump running at this ηpump × ηmotor level (already excellent), the savings potential resides in motor/automation optimization layers.

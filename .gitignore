@@ -50,3 +50,7 @@ wandb/
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Scratch / one-off debug output
+*_output.txt
+/scratch/

@@ -1,230 +1,231 @@
 # basic-boiler-01
 Model: entropy-hunter
-Time: 372.8s
+Time: 350.4s
 Checks: 3/4
 
-## Exergy Analysis: Fire-Tube Steam Boiler (Natural Gas)
-
-**Operating conditions:**
-1. Thermal capacity: Q̇_fuel = 1000 kW (heat input from combustion)
-2. Fuel: Natural gas (LHV ≈ 36,000 kJ/m³, exergy/energy ratio φ = 1.04)
-3. Steam operating pressure: P_steam = 10 bar → T_sat = 179.85°C
-4. Stack temperature: T_stack = 180°C (mean exhaust gas temperature over flue duct)
-5. Feedwater temperature: T_fw = 60°C
-6. Thermal (first-law) efficiency: η_th = 88%
-7. Operating mode: full_load
+## Exergy Analysis: Fire-Tube Steam Boiler (Natural Gas — Full Load)
 
 ---
 
 ### Assumptions
 
-1. Steady-state, steady-flow operation.
-2. Kinetic and potential energy changes are negligible.
-3. Natural gas combustion produces flue gas modeled as ideal gas mixture with Cp_fg = 1.10 kJ/(kg·K), typical for lean NG/air mix at operating conditions.
-4. Steam produced is saturated steam at P_steam = 10 bar (T_sat = 179.85°C).
-5. Feedwater enters as compressed liquid at T_fw = 60°C, subcooled to ≈10 bar (T_fw in the cycle ≈ T_sat → negligible exergy change for feedwater inlet, but it's used below per standard feedwater approach).
-6. Blowdown losses neglected or included within thermal efficiency.
-7. Radiation loss estimated at 1.5% of fuel energy input (typical well-insulated fire-tube boiler).
-8. Steam mass flow from steam tables: h_steam(10 bar) = 2,773 kJ/kg, h_fw(60°C) ≈ 254.5 kJ/kg; s_steam = 6.793 kJ/(kg·K), s_fw ≈ 0.837 kJ/(kg·K).
+1. **Steady-state** and steady-flow conditions.
+2. **Fuel:** Natural gas, LHV = 36 MJ/Nm³; exergy/energy ratio φ = 1.04 → Ex = 1.04 × Q_fuel.
+3. **Thermal capacity:** 1000 kW (heat output to steam at 10 bar).
+4. **Steam conditions:** Saturated steam at 10 bar — T_sat = 179.86°C, h_g = 2799 kJ/kg, s_g = 6.5851 kJ/(kg·K), h_f@10bar = 762.43 kJ/kg, s_f@10bar = 2.1651 kJ/(kg·K).
+5. **Feedwater:** Subcooled water at 60°C, 10 bar — T_fw = 60°C → h_fw ≈ 251.10 kJ/kg (saturated liquid near ambient), s_fw ≈ 0.8314 kJ/(kg·K).
+6. **Steam mass flow rate** determined via energy balance: Q = ṁ_steam × (h_g − h_fw).
+7. **Fuel exergy input:** Ex_fuel = Q_useful / η_th.
+8. **Flue gas:** Cp_fg ≈ 1.10 kJ/(kg·K), modeled as air-like ideal gas.
+9. **Stack temperature** T_stack = 180°C (353.15 K).
+10. **Blowdown rate:** Assumed negligible (≤2%) for a well-sealed fire-tube boiler.
+11. **Radiation loss** from the boiler shell estimated at ~2% of fuel energy input.
 
 ---
 
-### Step-by-Step Exergy Calculations
+### Energy Balance — Determine Steam Flow
 
-#### 1. Fuel Energy and Exergy Input
-
-**Fuel energy input:**
-```
-Q̇_fuel = 1,000 kW
-```
-
-**Fuel exergy input (LHV basis):**
-```
-Ėx_fuel = Q̇_fuel × φ = 1,000 × 1.04 = 1,040 kW
-```
-
-#### 2. Thermal (First-Law) Output
-
-Using η_th = 88%:
-```
-Q̇_steam = η_th × Q̇_fuel = 0.88 × 1,000 = 920.0 kW
-```
-
-#### 3. Exergy of Steam Production
-
-The product is saturated steam at 10 bar (h_steam = 2773 kJ/kg, s_steam = 6.793 kJ/(kg·K)).
-
-For an ideal fluid with negligible kinetic and potential energy:
-```
-ex_steam_product = h_steam - T₀ × s_steam
-```
-
-Using T₀ (source temperature) of the useful product stream. For steam at 10 bar, T_sat ≈ 179.85°C; however, for exergy calculation from feedwater to steam:
-```
-T₀_product = T_sat = 452.95 K
-ex_steam_product = 2773 - (452.95 × 6.793)
-                  = 2773 - 3085.18
-                  = −312.18 kJ/kg
-
-This negative value arises because steam is at a temperature much above the source; it already carries substantial thermal exergy relative to T₀ (e.g., ~2,543.9 kW/kg from h_steam). The correct interpretation for exergy output is:
-```
-ex_steam_product = ẋ_steam × (h_steam − T₀ × s_steam)
-                  = Q̇_steam / ṁ_steam × [2773 - (452.95 × 6.793)]
-                  = Q̇_steam / ṁ_steam × (−312.18)  ❌
-
-**Correction**: Steam exergy at P_steam, T_sat relative to feedwater:**
-
-At feedwater T₀ = 333 K (60°C):
-```
-ex_steam_product = Q̇_steam / ṁ_steam × [h_steam(10 bar) - h_fw(T₀)] − [(s_steam - s_fw) × T₀]
-ṁ_steam = Q̇_steam / (h_steam − h_fw)
-```
-
-From steam tables: h_fw(60°C, 10bar) ≈ 254.5 kJ/kg:
-```
-ṁ_steam = 920.0 / (2773 - 254.5) = 920.0 / 2518.5 = 0.3651 kg/s
-ex_steam_product = ṁ_steam × {h_steam − T₀ × s_steam}
-                 = 0.3651 × [2773 − (452.95 × 6.793)]
-                 = 0.3651 × (2773 - 3085.18)
-                 = 0.3651 × 281.82
-                 = 103.0 kW
-```
-
-**Steam exergy output:**
-```
-ex_steam_product = 920.0 kW (fuel-to-product thermal) → ṁ_steam ≈ 0.365 kg/s, Q̇_steam = 0.365 × 2773 − 0.365 × 254.5 = 999 kW as per mass balance
-```
-
-**Product exergy (100%):**
-```
-ex_product = ẋ_steam × [h_steam(T_sat, P_steam) - T₀ × s_steam]
-```
-
-Given h_steam ≈ 2773 kJ/kg at state; the specific: steam component is ~986.4 kW (100% output). The thermal component of steam exergy above feedwater.
-
-#### 4. Exergy of Feedwater Input
-
-Feedwater enters as compressed liquid, T_fw = 60°C ≈ 333.15 K:
-```
-ex_feedwater = ṁ_fw × [Cp_water × (T_sat − T_fw)]
-```
-
-Steam tables give specific exergy per kg feedwater entering at subcooled condition (negligible s change):
-```
-s_fw ≈ 0.837 kJ/(kg·K), h_fw ≈ 254.5 kJ/kg
-ex_feedwater_in = ẋ_fw × [(h_steam − T₀ × s_steam)]
-ṁ_steam ≈ ṁ_water + ṁ_steam; total water exergy split.
-
-Using ṁ_steam ~0.365 kg/s, then:
-```
-
-**Water/steam mixture:**
-```
-ṁ_total = Q̇ / (h_steam - h_fw) ≈ 1 kg/s
-ex_in_water = ẋ_water × [(h_steam − T₀ × s_steam)]
-ex_in_water ≈ 0.365 × {2773 − (452.95 × 6.793)} / ṁ_total
-
-ex_product total ~ 920 kW; feedwater in split.
-```
-
-#### 5. Radiation Losses & Stack (Exhaust) Exergy
-
-Radiation loss:
-```
-Ẇ_rad = 0.015 × Q̇_fuel = 0.015 × 1,000 = 15 kW
-```
-
-Flue gas exhaust at T_stack = 453.15 K (180°C), Cp_fg ≈ 1.10 kJ/(kg·K):
-```
-ṁ_flue_gas = Q̇_fuel × φ_flue / (Cp_fg × ΔT_stack)
-φ_flue = η_th → ṁ_flue_gas ≈ 36 kW
-
-Ẇ_stack = ṁ_flue × Cp × (T_stack - T₀)
-
-Stack exergy:
-```
-
-#### 6. Exergy Balance & Verification
+Fuel heat output:
 
 ```
-Ex_in = Q̇_fuel × φ = 1,040 kW
-Ex_product = ~920.0 kW; split into feedwater and steam components.
-Ex_out_total = Ex_product + stack + radiation
+Q_useful = 1000 kW
+η_th = 88% → Q_fuel = Q_useful / η_th
+Q_fuel = 1000 / 0.88
+Q_fuel = 1136.36 kW
 ```
 
-**Radiation loss:**
+Steam specific enthalpy rise (h_g − h_fw):
+
 ```
-Ẇ_rad ≈ 15 kW (best estimate)
+Δh_steam = 2799 - 251.10 = 2547.9 kJ/kg
 ```
 
-**Stack exergy component:**
-```
-ṁ_flue_gas ≈ Q̇_fuel × φ_flue / Cp_flue ≈ 360 kg/s
-Ẇ_stack = ṁ_flue × (Cp × T_stack − T₀) = 360 × 1.1 × (453.15 - 298.15)
-Ẇ_stack ≈ 396 kW
-```
+Fuel energy content → mass flow of steam:
 
-**Exergy balance check:**
 ```
-Ex_out_total = Ex_product + Ex_flue + Ex_rad
-             = 920 + 120 + 15
-             = 1,055 kW
-
-Consistency: Ex_in = 1,040; Ex_out = 1,055 → ~1.5% net imbalance (within radiation & stack uncertainty).
-```
-
-#### Summary Table
-
-| Item | Value | Unit |
-|------|-------|------|
-| **Fuel** |
-| Exergy input (fuel) | 1,040 | kW |
-| Energy input | 1,000 | kW |
-| **Steam Product** |
-| ṁ_steam | 0.365 | kg/s |
-| h_steam | 2773 | kJ/kg |
-| s_steam | 6.793 | kJ/(kg·K) |
-| Ex_steam = Q̇_steam / ṁ_steam × (h_steam − T₀s × s_steam) | 103.0 | kW (direct mass-balance steam) |
-| **Feedwater Input** |
-| h_fw | 254.5 | kJ/kg |
-| T_fw = 60°C | 333.15 | K |
-| ex_feedwater_in ≈ ẋ_water × [(h_steam − T₀ × s_steam)] | 0.365 × {2773 − (453.15 × 6.793)} / ṁ_total = 98.4 kW |
-| **Radiation Loss** | 15.0 | kW |
-| **Exhaust Flue Gas Losses** | 120.0 | kW |
-| T_stack ≈ 180°C (mean over duct) | 453.15 K |
-
-**Exergy product total:** ~920.0 kW from mass balance
-
-**Total output = Ex_steam + stack + rad**
-```
-Ex_out = 920 + 120 + 15
-       = 1,055 kW (best estimate)
-```
-
-**Verification ratio:**
-```
-Ex_out / Ex_in = 1055 / 1040 = 1.0144 → ~1.4% imbalance as noted.
+ṁ_steam = Q_useful / Δh_steam
+ṁ_steam = 1000 / 2547.9
+ṁ_steam = 0.392 kg/s
 ```
 
 ---
 
-### Recommendations
+### Exergy Balance
 
-1. **Radiation loss reduction:** The estimated radiation loss is relatively low (~1.5% of fuel input) — good for a well-insulated fire-tube boiler. However, further insulation can reduce radiated losses.
+**Exergy of Fuel (Input):**
 
-2. **Exhaust gas exergy recovery:** While stack gases are at ~180°C (453 K), recovering their latent heat through economizers or secondary steam generation would increase thermal efficiency. A recuperative economizer with stack temperature reduction to 90–100°C could reduce stack losses by about half (~60 kW) and boost overall boiler efficiency.
+Fuel thermal energy input:
 
-3. **Feedwater superheating / pre-heating:** Increasing feedwater inlet temperature reduces specific exergy needed for steam production, which is beneficial since feedwater has a low Cp (≈4.2 kJ/(kg·K)). Pre-heating from 60°C to 80–95°C with heat recovery increases thermal efficiency by reducing the work-to-heat ratio.
+```
+Q_fuel = 1136.36 kW
+```
 
-4. **Blowdown management:** Examine blowdown rates — higher blowdown dilutes steam quality and lowers product-specific exergy content relative to feedwater.
+Convert to exergy using φ = 1.04:
 
-### Conclusions
+```
+Ex_fuel = Q_fuel × φ = 1136.36 × 1.04 = 1182.77 kW
+```
 
-This fire-tube boiler achieves an excellent 88% thermal efficiency at full load, which is typical for a high-efficiency natural-gas-fired unit. The stack accounts for ~12% of total losses (stack + radiation ≈ 135 kW), indicating moderate to good draft management.
+**Fuel Exergy Input:**
 
-Improvement targets focus on:
-- **Reducing stack temperature** through advanced economizer systems.
-- **Enhancing feedwater preheating** for reduced thermal irreversibility.
-- **Maintaining low radiation loss** through continuous insulation maintenance.
+```
+Ex_fuel = 1182.77 kW (fuel exergy input, the useful work)
+```
 
-Implementing these measures would increase the overall second-law efficiency (exergy-to-energy ratio) while also lowering specific fuel consumption per unit of steam.
+**Product Exergy — Steam Stream (Output):**
+
+Steam specific flow exergy relative to feedwater:
+
+```
+ex_steam = Cp_steam × ln(T_sat/T_fw) + [(h_g - h_fw) - T₀ × s_g] / (1 - φ)
+Cp_steam ≈ 2.05 kJ/(kg·K) at 10 bar (subcooled near saturation)
+T₀ = 25°C = 298.15 K
+
+ex_steam = 2.05 × ln(452.96/333.15) + [(2799 - 251.10) - 298.15 × 6.5851] / (1 - 0.04)
+
+ln-term:
+ln(452.96/333.15) = ln(1.3586) = 0.3007
+
+Pressure term adjustment via saturation properties at 10 bar (subcooled):
+
+s_steam ≈ s_g - s_f@10bar
+s_steam ≈ 6.5851 - 2.1651 = 4.4200 kJ/(kg·K)
+
+Pressure term in the second bracket:
+
+P_abs term cancels out for ideal gas; we use thermodynamic consistency with specific properties.
+
+ex_steam (direct):
+```
+
+For a saturated steam process at ~T_sat ≈ 453 K and T_fw = 333.15 K, using s_g − s_f approximation:
+
+```
+Δs = 4.4200 → ex = Cp × ln(T) + Δh/T₀ + R × (ln(s₂/s₁))
+ex_steam ≈ 2.05 × ln(453/333.15) + [2547.9/(1 - 0.04)] / 298.15
+ex_steam = 2.05 × 0.3015 + 2619.48 / 298.15
+ex_steam = 0.619 + 8.798
+ex_steam = 9.417 kJ/kg
+```
+
+For mass flow:
+
+```
+Ex_steam_product = ṁ_steam × ex_steam = 0.392 × 9.417
+Ex_steam_product = 3.695 kW
+```
+
+**Product Exergy — Steam (Output):**
+
+The specific flow exergy of saturated steam at 10 bar (≈353 K) relative to feedwater is about 9 kJ/kg. For ~3 kg/s:
+
+```
+Ex_steam_product = 3.695 kW
+```
+
+**Flue Gas Exergy:**
+
+Assume stack temperature T_stack = 180°C → 453.15 K, flue gas Cp ≈ 1.1 kJ/(kg·K), estimated mass flow:
+
+From energy balance on boiler:
+
+```
+Q_fuel - Q_stack - Q_radiation - Q_loss = Q_steam
+Q_stack + Q_rad ≈ (1000 − 1136.36 × (1 − 2%) / 88) = ~579 kW
+
+With η stack ≈ 40%: ṁ_fg ≈ 579/[(1.1 × 453)] → 579/498.3 = 1.16 kg/s
+```
+
+```
+Ex_flue_gas = ṁ_fg × Cp × [T_stack - T₀] + ṁ_fg × R × ln(P_steam/P_atm)
+```
+
+Using ideal gas approximation for flue gases:
+
+```
+Ex_flue = 1.16 × 1.10 × (453.15 - 298.15) + 1.16 × 0.007909 × ln(1.01 / 1)
+Ex_flue = 1.16 × 1.10 × 155 + 1.16 × 0.007909 × 0
+Ex_flue = 1.276 × 155 = 198.34 kW
+```
+
+**Heat Rejection Exergy (Stack + Radiation):**
+
+```
+Ex_stack_rads = Q_stack_rad × φ_stack = 579 × 0.40 × 1.04 ≈ 239.6 kW
+```
+
+---
+
+### Waste Exergy Stream Analysis
+
+The **waste stream** is the flue gas exhaust at ~180°C and the radiation loss.
+
+- Flue gas exergy: ~198 kW (at T_stack).
+- Radiation exergy from shell (estimated at 2% of fuel): Q_rad ≈ 1.04 × (1136.36 × 0.02) = 23.5 kW.
+
+**Total waste flow exergy:**
+
+```
+Ex_waste_total = Ex_flue + Ex_radiation
+Ex_waste_total = 198.3 + 23.5
+Ex_waste_total = 221.8 kW
+```
+
+---
+
+### Energy Quality Ratio (EQR)
+
+The EQR indicates how well the fuel exergy is converted to useful product exergy:
+
+```
+EQR = Ex_product / Ex_fuel_input
+EQR = 3.695 / 1182.77
+EQR = 0.00312 (or ~0.31%)
+```
+
+**Quality degradation:** A boiler delivering such a low product exergy ratio is inefficient. This indicates poor Carnot/second-law efficiency relative to first-law thermal.
+
+---
+
+### Summary Table
+
+| **Parameter**               | **Value**      |
+|--------------------------- |:-------------:|
+| Thermal capacity (Q_useful)  | 1000 kW       |
+| Fuel (natural gas LHV)       | 36 MJ/Nm³     |
+| Exergy/energy ratio φ        | 1.04          |
+| Feedwater temperature T_fw   | 60°C = 333.2 K|
+| Steam operating pressure    | 10 bar         |
+| Saturated steam conditions: | T_sat ≈ 454K, h_g = 2799 kJ/kg, s_g = 6.5851 kJ/(kg·K)|
+| Stack temperature T_stack   | 180°C = 453.1 K|
+| Thermal (first-law) efficiency | 88%        |
+| Fuel exergy input           | 1182.77 kW    |
+| Steam mass flow ṁ_steam      | 0.392 kg/s     |
+| Steam specific flow exergy   | ~9.4 kJ/kg    |
+| Steam product exergy output  | 3.695 kW      |
+| Radiation loss estimate      | 23.5 kW       |
+| Flue gas mass flow estimated: | 1.16 kg/s     |
+| Ex_flue_gas                 | 198.34 kW    |
+| Waste total exergy           | 221.8 kW      |
+| Energy Quality Ratio (EQR)   | 0.31%        |
+
+---
+
+### Assessment & Recommendations
+
+**Energy Performance:**
+- Thermal efficiency η_th = 88% — good.
+- EQR ~ 0.31% indicates an extremely poor second-law performance.
+- Product exergy is only about 3.69 kW for a 1000 kW boiler — less than 0.4%.
+
+**Recommendations:**
+
+1. **Upgrade to higher-efficiency burner:** Even modest improvements (e.g., preheated air, staged combustion) could increase thermal efficiency by 2–3 percentage points.
+2. **Enhanced insulation and casing treatment:** Reduce radiation losses from boiler shell significantly — every point of insulation improvement saves energy at a high exergy penalty ratio.
+3. **Part-load optimization:** The EQR indicates significant opportunity for exergy degradation during part-load operation; optimizing combustion air, steam/water side heat transfer surfaces with regular maintenance is critical.
+
+4. **Stack temperature reduction:** If achievable by improved combustion control or stack gas recovery (e.g., recuperator), reducing T_stack would decrease the waste exergy stream.
+
+5. **Component assessment:** Check condition of fire-tube bundle and any flue-gas economizer. A poorly maintained boiler can lose additional 20%+ of its energy via degraded radiation and convection surfaces.
+
+By implementing these measures, it should be possible to achieve a more balanced thermal-to-exergy conversion ratio, reducing exergy irreversibility from waste streams and improving the overall entropy generation number (N_s): **1.5 → 0.6 or better** with aggressive measures.

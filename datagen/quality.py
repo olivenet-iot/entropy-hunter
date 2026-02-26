@@ -171,14 +171,17 @@ def _extract_from_json_block(text: str) -> dict[str, Optional[float]]:
         "f_factor": "f_factor",
     }
 
-    # Find JSON block: look for ```json ... ``` at the end of text
-    # Allow some trailing whitespace/newlines after the block
-    pattern = r'```json\s*\n?\s*(\{[^}]+\})\s*\n?\s*```\s*$'
-    match = re.search(pattern, text, re.DOTALL)
+    # Find JSON block: v0.2 puts it at the BEGINNING, v0.1 had it at the END
+    # Try beginning first (### JSON Summary), then fall back to end
+    pattern_begin = r'```json\s*\n?\s*(\{[^}]+\})\s*\n?\s*```'
+    pattern_end = r'```json\s*\n?\s*(\{[^}]+\})\s*\n?\s*```\s*$'
+    
+    # Try to find ANY json block (works for both positions)
+    match = re.search(pattern_begin, text, re.DOTALL)
     
     if not match:
-        # Try without code fence (bare JSON at end)
-        pattern = r'(\{"exergy_in_kW"[^}]+\})\s*$'
+        # Try without code fence (bare JSON)
+        pattern = r'(\{"exergy_in_kW"[^}]+\})'
         match = re.search(pattern, text, re.DOTALL)
     
     if not match:

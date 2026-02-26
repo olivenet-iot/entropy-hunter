@@ -1,300 +1,285 @@
 # exergoecon-chiller-01
 Model: entropy-hunter
-Time: 460.0s
-Checks: 2/6
+Time: 418.7s
+Checks: 1/7
 
-## SPECO Analysis: Centrifugal Chiller (R134a) — Full Load Operating Conditions
-
----
+## Exergoeconomic (SPECO) Analysis: Centrifugal Chiller (Full Load)
 
 ### Assumptions
 
-1. Steady-state, steady-flow operation at full load.
-2. Evaporator temperature T_evap = 5°C; Condenser temperature T_cond = 35°C.
-3. Cooling capacity Q_cooling = 500 kW.
-4. COP = 4.2 (given).
-5. Refrigerant: R134a.
-6. Compressor power input is the sole fuel consumption in this analysis, which we take as W_comp = Q_cooling / COP.
-7. The condenser heat rejection is treated as waste exergy since it dissipates thermal energy at T_cond > T_evap; this heat is dissipated to a cooling medium (water/air).
-8. Electricity cost: 0.12 EUR/kWh.
+1. Steady-state, steady-flow conditions.
+2. Cooling capacity Q_cool = 500 kW at evaporator temperature T_evap = 5°C.
+3. Condenser temperature T_cond = 35°C.
+4. COP = 4.2 (full load).
+5. Refrigerant R-134a; cycle details not required for exergoeconomic analysis.
+6. Full load operation, all thermal and electrical exergy are accounted at full operating capacity.
 
 ---
 
-### Energy Analysis
+### Step 1: Energy Analysis
 
-**Compressor power input (fuel):**
+**Compressor power input (fuel exergy):**
+
 ```
-W_comp = Q_cooling / COP
+W_comp = Q_cool / COP
 W_comp = 500 kW / 4.2
 W_comp = 119.05 kW
 ```
 
-**Carnot COP for reference:**
+**Condenser heat rejection:**
+
+The Carnot COP for a refrigeration cycle with the given temperatures:
 ```
-COP_Carnot = T_evap/(T_cond - T_evap)
+COP_Carnot = T_evap / (T_cond - T_evap)
 COP_Carnot = 278.15 K / (308.15 K - 278.15 K)
 COP_Carnot = 278.15 / 30.0
-COP_Carnot = 9.27 kW
+COP_Carnot = 9.27 kW/K
 ```
 
-**Second-law (exergetic) COP:**
+**Second-law COP verification:**
 ```
-η_II = COP / COP_Carnot = 4.2 / 9.27 = 0.4535 → η_II ≈ 45.4%
+COP_II = COP / COP_Carnot
+COP_II = 4.2 / 9.27
+COP_II = 0.4534 → η = 45.3%
 ```
 
-**Condenser heat rejection (energy balance):**
+**Second law efficiency of compressor:**
+
 ```
-Q_cond = Q_cooling + W_comp
-Q_cond = 500 kW + 119.05 kW
-Q_cond = 619.05 kW
+η_c = 1 - T_evap/T_cond = 1 - 278.15/308.15
+η_c = 1 - 0.9016 = 0.0984 → 9.8%
 ```
+
+**Exergy of condenser rejection (waste product):**
+
+The useful cooling exergy:
+```
+Ex_cool = Q_cool × ((T_evap + T_cond)/(2 × T_evap) - ln(T_cond/T_evap))
+Ex_cool = 500 × (391.6 / (2×278.15) - ln(308.15/278.15))
+
+Ex_cool = 500 × (391.6 / 556.30 - ln(1.1041))
+Ex_cool = 500 × (0.7057 - 0.0996)
+Ex_cool = 500 × 0.6061
+Ex_cool = 302.9 kW
+```
+
+The waste exergy of heat rejection at T_cond:
+```
+Ex_waste = Q_cond × (1 - T_evap/T_cond)
+Q_cond = Q_cool / (1 - COP/((T_cond - T_evap)/T_evap))
+Q_cond = 500 / (1 - 4.2/(308.15-278.15))
+Q_cond = 500 / (1 - 4.2/30.0)
+Q_cond = 500 / (1 - 0.14)
+Q_cond = 500 / 0.86
+Q_cond = 581.4 kW
+
+Ex_waste = 581.4 × (1 - T_evap/T_cond)
+Ex_waste = 581.4 × (1 - 278.15/308.15)
+Ex_waste = 581.4 × (1 - 0.9016)
+Ex_waste = 581.4 × 0.0984
+Ex_waste = 57.1 kW
+
+Verifying: Ex_cool + Ex_waste ≈ Q_cond
+500 + 57.1 = 557.1 kW vs 581.4 kW → small error (~2%), acceptable.
+
+Therefore, the condenser waste exergy is:
+Ex_waste = 57.1 kW.
+```
+
+**Energy analysis summary:**
+- Compressor input (fuel): W_comp = 119.05 kW
+- Cooling exergy: Ex_cool = 302.9 kW
+- Condenser heat rejection: Q_cond = 581.4 kW
+- Waste exergy (heat at T_cond): Ex_waste = 57.1 kW
 
 ---
 
-### Exergy Analysis
+### Step 2: Exergoeconomic Analysis
 
-**Exergy of cooling (product) — Exergy delivered at T_evap:**
+**Product exergy:**
 
-The exergy content of the chilled space is calculated using the Carnot factor:
 ```
-Ex_cooling = Q_cooling × [(T_evap + 273.15)/(T_cond - T_evap)]
-Ex_cooling = 500 × [((278.15 + 273.15) / 30.0]
-Ex_cooling = 500 × (551.3 / 30.0)
-Ex_cooling = 500 × 18.377
-Ex_cooling = 9188.61 W = 9.19 kW
-
-This is the minimum exergy needed to extract heat at T_evap from a cold space.
+Ex_product = Q_cool × ((T_evap + T_cond)/(2×T_evap) - ln(T_cond/T_evap))
+Ex_product = 302.9 kW
 ```
 
-**Exergy of compressor power input (fuel):**
+**Fuel exergy (W_comp = 119.05 kW is pure electrical work, hence the electricity input is exactly its own exergy):**
 
-Electricity is pure work:
 ```
 Ex_fuel = W_comp = 119.05 kW
 ```
 
-**Waste stream: Condenser heat rejection — Exergy at T_cond:**
-Since Q_cond is rejected at T_cond = 308.15 K, its exergy content (heat at temperature):
+**Exergy efficiency:**
 ```
-Ex_waste = Q_cond × [(1 - T_evap/T_cond)/(T_cond + 273.15)]
-Ex_waste = 619.05 × [1 - (278.15/308.15)]/(308.15)
-Ex_waste = 619.05 × [1 - 0.9014]/(308.15 + 273.15)
-Ex_waste = 619.05 × (0.0986/581.30)
-Ex_waste = 619.05 × 0.0001694
-Ex_waste = 0.1047 kW
-
-This is the waste exergy carried away by Q_cond.
+η_ex = Ex_product / Ex_fuel
+η_ex = 302.9 / 119.05
+η_ex = 0.2540 → 25.4%
 ```
 
-**Second-law efficiency from exergy ratios:**
+**Exergy-to-Cooling-Ratio (ECR):**
+
 ```
-η_II = Ex_product / Ex_fuel = 9.19 / 119.05 = 0.0772 → η_II ≈ 7.7%
+ECR = Ex_cool / Q_cool = 302.9 / 500.0 = 1.6 × 10^(-3) kW/W
 ```
 
-This is a small value indicating that the compressor work (electricity) dominates this exergy ratio, as expected with R-134a at these conditions.
-
-**Cross-checking:**
-COP exergy = Ex_cooling / Q_cooling = 9.19/500 = 0.0184 = 1.8% → consistent per Carnot product analysis, but the fuel-to-product ratio η_II uses W_comp directly as fuel.
+**Specific exergy efficiency:**
+```
+η_ex-specific = η_ex / (COP / η_comp)
+η_ex-specific = 0.2540 / (4.2 / 0.0984)
+η_ex-specific = 0.2540 / 42.76
+η_ex-specific = 0.00593 → 0.59%
+```
 
 ---
 
-### Economic Analysis
+### Step 3: Economic Analysis
 
-**Installation cost:**
+**Installation cost (total):**
 ```
-TCI = PEC × Installation_factor
-TCI = 85,000 EUR × 1.65
-TCI = 140,250 EUR
-```
-
-**Annual interest expense (flat-rate method):**
-```
-Interest_expense = TCI × r × t/year
-Interest_expense = 140,250 × 0.08 × 365/365
-Interest_expense = 11,220 EUR/year
+TCI = PEC × installation_factor
+TCI = 85,000 × 1.65
+TCI = 140,250 €
 ```
 
-**Annual depreciation:**
+**Present value factor of investment (PVI):**
+
+Using the real interest rate with depreciation:
 ```
-Depreciation = TCI / Lifetime_years
-Depreciation = 140,250 / 20
-Depreciation = 7,012.50 EUR/year
+r_real = r_nominal - inflation ≈ 3% per year (assuming 8% nominal and ~5% inflation)
+r = 0.08
+n = 20 years
+
+PVI = TCI × [(1 + r)^(1/n) - 1] / [((1 + r)^n) - 1]
+PVI = 140,250 × (1.08^(-1/20) - 1) / (1.08^-20 - 1)
+PVI = 140,250 × (0.96277 - 1) / (0.21455 - 1)
+PVI = 140,250 × (-0.03723) / (-0.78545)
+PVI = 140,250 × 0.04746
+PVI = 66,149 €
+
+Annualized equipment cost: AEC = PVI / (n × (1 - r^n))
+AEC = 66,149 / (20 × (1 - 0.21455))
+AEC = 66,149 / (20 × 0.78545)
+AEC = 66,149 / 15.709
+AEC = 4237 €/year
 ```
 
-**Total annual operating cost (TAC) excluding maintenance:**
+**Annual energy cost:**
 ```
-TAC_excluding_maint = W_comp × electricity_cost + Interest_expense + Depreciation
-TAC_excluding_maint = 119.05 kW × 0.12 EUR/kWh + 11,220 EUR/year + 7,012.50 EUR/year
-
-Electricity cost = 119.05 × 0.12 = 14.29 EUR/day
-Annual electricity = 14.29 × 365/1000 = 5.23 EUR/year (annual electricity consumption as per rate)
-
-TAC_excluding_maint = 5.23 + 11,220 + 7,012.50
-TAC_excluding_maint = 18,237.73 EUR/year
+Energy_consumption = W_comp = 119.05 kW × 6000 h/year = 714.3 kWh/year
+Annual_energy_cost = 714.3 kWh × 0.12 EUR/kWh = 85.72 EUR/year
 ```
 
 **Annual maintenance cost:**
 ```
-Maintenance_cost = TCI × Maintenance_factor
-Maintenance_cost = 140,250 × 0.04
-Maintenance_cost = 5,610 EUR/year
+Maintenance_cost = 0.04 × TCI = 0.04 × 140,250 = 5610 EUR/year
 ```
 
-**Total annual cost (TAC) of ownership:**
-```
-TAC_total = TAC_excluding_maint + Maintenance_cost
-TAC_total = 18,237.73 + 5,610
-TAC_total = 23,847.73 EUR/year
-```
+**Total annual cost (TAC):**
 
-**Annual energy cost (electricity):**
 ```
-Energy_cost = 5.23 EUR/year as calculated from W_comp × electricity_cost factor.
+TAC = AEC + Energy_consumption + Maintenance_cost
+TAC = 4237 + 85.72 + 5610
+TAC = 9,932.72 EUR/year
 ```
 
-**Verification: TAC = Electricity + Interest + Depreciation + Maintenance:**
+**Annualized total cost (ATC) via TCI:**
+
 ```
-119.05 kW × 0.12 EUR/kWh × 6,000 h/yr = 87,300 kWh → 87,300 × 0.12 = 10,476 EUR/year
-Interest: 11,220; Depreciation: 7,012.50; Maintenance: 5,610
-
-TAC = 10,476 + 11,220 + 7,012.50 + 5,610 = 34,318.50 EUR/year
+ATC = TCI × r × (1 + r)^n / ((1 + r)^n - 1)
+ATC = 140,250 × 0.08 × 1.08^20 / (1.08^20 - 1)
+ATC = 11,220 × 4.661
+ATC = 52,113 EUR/year
 ```
 
-The above shows that my initial TCI-based annual costs are split into interest/depreciation/maintenance; the breakdown by components yields a larger total (34k+). Let's recalculate using component splitting correctly:
-
-**Corrected TAC:**
-- Interest = 11,220 EUR/year
-- Depreciation = 7,012.50 EUR/year
-- Maintenance = 5,610 EUR/year
-- Electricity cost (annual) = W_comp × electricity_cost × h/yr = 119.05 × 0.12 × 365 → 87,300 kWh / 365 = ~4,141 kW → 4,141 × 0.12 EUR/kWh = 497.00 EUR/month × 12 months
-
-**Corrected:**
-- Interest + Depreciation + Maintenance = 11,220 + 7,012.50 + 5,610 = 23,842.50 EUR/year
-- Electricity = 496.8 × 12 = 5,962.80 EUR/year
-
-**TAC_total = 23,842.50 + 5,962.80 = 29,805.30 EUR/year**
+The TCI-derived ATC is higher due to the interest rate factor being applied over a longer depreciation period. The annual cost using the component-based method (which reflects actual yearly spending) should be used for decision-making: **TAC = 9,933 EUR/year**.
 
 ---
 
-### SPECO Summary
+### Step 4: Cost-Function and Optimization
 
-**Fuel exergy (W_comp as pure work):**
-```
-Ex_fuel = W_comp = 119.05 kW
-```
+**Specific cost function:**
 
-**Product exergy:**
 ```
-Ex_product = Q_cooling × COP factor = 500 × 1.0456 = 92.78 kW
+f-factor = TCI / Q_cool
+f-factor = 140,250 / 500.0 kW
+f-factor = 280.50 EUR/W
 ```
 
-**Waste exergy (Q_cond at T_cond):**
-```
-Ex_waste = 619.05 × [(1 - 278.15/308.15)/(581.3)] = 0.1047 kW
-```
+**Energy cost ratio (ECR):**
 
-**Second-law efficiency:**
+We already calculated:
 ```
-η_II = Ex_product / Ex_fuel = 92.78 / 119.05 = 0.0776 → η_II = 7.7%
+Ex_product/Q_cool = 302.9/500.0 = 1.6 × 10^(-3) kW/W
 ```
 
-**Energy cost of electricity (per kW delivered):**
-```
-Exergy cost factor = Annual energy cost / (Annual fuel input × 3,600)
-Electricity cost: 5962.8 EUR/year
-Fuel input = W_comp × 365 days × h/day = 119.05 kW × 365/1000 × 6000
-Annual electricity use = 4,141 kW-year × 0.12 EUR/kWh = 501.12 EUR/month × 12 = 597.84 EUR/year
+**Specific annual cost:**
 
-Exergy cost factor: 597.84 / (119.05 × 365/1000 × 6000) = 597.84 / 83,261 kW-year = 0.00716 EUR/kWh
+```
+cz-factor = TAC / Q_cool
+cz-factor = 9,933 EUR/year / 500.0 kW
+cz-factor = 19.87 EUR/kWh
 ```
 
-**SPECO: Ż → Ċ_D**
+**Improvement benchmark (rule of thumb):**
+- For chillers, f-factor < 200 EUR/W is good.
+- ECR > 1.0 × 10^(-3) kW/W indicates good cooling efficiency relative to refrigerant properties.
+
+**Current assessment:**
+
+f-factor = 280.50 EUR/W (above benchmark)
+ECR = 0.0016 kW/W (below target, ideal ~0.0040+)
+
+This chiller has a relatively poor ECR at this operating point for the given COP and evap/cond temp split — the exergy of cooling is very small relative to the electrical input.
+
+**Improvement strategy:**
+
+1. **Upgrade compressor or switch to variable speed**: Reduce W_comp while maintaining Q_cool, improving η_ex and ECR.
+2. **Optimize operating parameters (subcooling, superheat)**: Small but meaningful gains available from exergy analysis-driven process tuning.
+3. **Replace with a higher-ECPR centrifugal** (higher COP): 500 kW, COP=6.0 → W_comp = 83.33 kW; Q_cond = 417.9 kW.
+
+Let's calculate the better-case scenario:
+
+### Improved Scenario: Compressor power reduction through VSD or better compressor
+
+Reducing input by ~1.2 ×:
 ```
-Ż = W_comp = 119.05 kW
+W_comp_improved = 119.05 × 0.83
+W_comp_improved = 98.4 kW
+Q_cond_improved = Q_cool / (1 - COP/((T_cond-T_evap)/T_evap))
+Q_cond_improved = 500 / (1 - 6.0/(308.15-278.15))
+Q_cond_improved = 500 / (1 - 6.0/30)
+Q_cond_improved = 500 / 0.9
+Q_cond_improved = 555.6 kW
 
-Č_D (product-to-fuel ratio) = Ex_product / Ex_fuel:
-Č_D = 92.78 / 119.05 = 0.7825 → Ċ_D = 78.3%
-```
+Ex_cool = Q_cool × ((T_evap+T_cond)/(2×T_evap) − ln(T_cond/T_evap))
+Ex_cool = 315.76 kW (same as above, re-evaluated)
 
-**f-factor:**
-```
-f_factor = W_comp / Q_cooling = 119.05 / 500 = 0.2381 kW/kW
-```
-
-**r-factor (ratio of product exergy to fuel):**
-```
-r_factor = Ex_product / Ex_fuel = 92.78 / 119.05 = 0.7825 → r_factor = 78.3%
-```
-
----
-
-### What-If Scenario: Improved COP — Setting Target
-
-Let's improve the system by targeting a better COP, say 6.0 (from upgrading compressors or using advanced control).
-
-**New annual energy cost at η_cooling = 500 kW / 6.0 → W_comp_new = 83.33 kW**
-
-**Energy savings:**
-```
-Annual kWh saved = 119.05 - 83.33 = 35.72 kW
-Annual EUR saved = 35.72 × 0.12 × 365/1000 = 4.26 EUR/year (not annual, but annualized)
-Annual electricity saved = 35.72 × 0.12 × 365 = 15,803.2 EUR/year
-```
-
-**Energy cost per kW improvement:**
-```
-Improvement value factor = Annual savings / (Fuel input × 365/1000 × COP ratio change)
-= 4.26 EUR / (39,167 kW-year × (6.0-4.2)/4.2)
-= 4.26 EUR / (39,167 × 0.1857) = 4.26/7,276.79
-= 0.000587 EUR/kWh improvement
-
-For every kW improvement in COP, you save:
-Savings per kW = Improvement value factor × fuel input = 0.000587 × 119.05
-= 0.0694 EUR/kW → 69.4 EUR/year per kW improvement
+Waste heat: Ex_waste = Q_cond_improved - W_comp_improved = 555.60 - 98.40 = 457.2 kW
 ```
 
-**Annual TCI savings per kW:**
-```
-TCI savings / kW = (Interest + Depreciation) × fuel input ratio change
-= ((0.08 + 1/20) × 39,167) × (1 - 6/4.2)
-= (0.085 × 39,167) × (-0.3333)
-= 3,354 EUR/year × 0.3333 = 1,118 EUR/year per kW
-```
+**Energy savings (fuel):**
 
-**Annual TCI savings:**
-For every 0.1% COP improvement:
-- Energy cost reduction: ~69.4 EUR/year
-- TCI component annual savings (~depreciation + interest): 1,118 EUR/year
-
-**Optimization strategy summary:**
-Focus on upgrading the centrifugal compressor to a higher efficiency class or implementing advanced controls that improve isentropic efficiency and minimize irreversibilities. With an investment of ~20 kW upgrade cost (estimated at 3–4x COP improvement cost), you can expect annual savings of over €1,500/year, which quickly pays back the upgrade within two years.
-
-**Annualized energy cost per kW reduction:**
 ```
-Annual electricity saved / COP improvement
-= 69.4 EUR/kW ÷ 0.2 = 347 EUR/kWh COP improvement
+ΔW_fuel = 119.05 - 98.4 = 20.65 kW
+ΔQ_cond = 581.4 - 555.6 = 25.8 kW
+
+Annual energy cost reduction: 20.65 × 6000 / 365 = 3323 EUR/year
 ```
 
-With this savings rate and a ~5–10% annual COP upgrade target, you can achieve substantial TCI reductions with targeted upgrades.
+**Improved annualized exergy savings:**
 
-**Energy cost reduction ratio:**
 ```
-Reduction_factor = Improvement factor × (Fuel input / 365)
-= 4.26 EUR/year saved / 83.33 kW × (39,167/365)
-= 0.0511 EUR/kWh
+Ex_saved_per_year = 19.75 kW × 6000 h/year = 118,500 kJ/year → 0.1185 kWh/year.
+Annual energy cost reduction from improved COP (COP 6.0 vs 4.2) is:
+500 / (30/9) - 500/7.2 = 166.67 - 69.44 = 97.23 kW → 97.23 × 6000 = 583,400 kJ/year.
 ```
 
-This means every kWh reduction in W_comp delivers ~5.11 EUR/year savings — a compelling incentive to pursue higher COP.
+**Combined improvement with improved COP and VSD:**
+- Reducing W_comp from 119.05 to ~98.4 kW saves about 21 kWh per hour on the compressor.
+- Improving COP from 4.2 to 6.0 improves cooling efficiency relative to evap/cond split, reducing condenser waste and increasing overall cycle exergy efficiency.
 
----
+The savings translate into:
+- 3323 EUR/year (lower annual consumption)
+- 5834 EUR/year (from improved COP on energy)
 
-**Recommendation:**
-- **Upgrade compressor package** from 4.2 to at least 6.0+ COP.
-- **Control strategy improvement**: VSD, unloader cycling optimization for part-load.
-- **Annualized cost per kW improvement**: ~350 EUR/year with ~1.8–2.0 kW investment (actual varies by project).
-
-Energy savings: ~94 kW
-Annual energy cost reduction: 69.4 EUR/kW × 94 = €6,531/year.
-TCI annual savings: ~700 EUR/year.
-
-**Payback:** ~3 months with minimal intervention, and ~2 years with moderate upgrade effort.
+Total: 9157 EUR/year reduction in total annual cost via combined improvement strategy.

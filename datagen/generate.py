@@ -94,13 +94,18 @@ FAMILY_DISPATCH = {
 
 ALL_EQUIPMENT_TYPES = list(EQUIPMENT_TYPES_A.keys())
 
+## v0.2 weights: shifted toward weak areas identified by audit
+# Exergoeconomic: CRF regression fix (was 0% benchmark, 49% in training)
+# Entropy generation: grade + mechanism split fix (was 0.3% and 8% values in training)
+# Basic exergy: T2s + steam tables reinforcement
+# Whatif/AV-UN/Hotspot: maintain (already 60-83% benchmark)
 ANALYSIS_WEIGHTS = {
-    "basic_exergy":          250,
-    "exergoeconomic":        150,
-    "entropy_generation":    150,
-    "whatif_comparison":     100,
-    "avoidable_unavoidable":  80,
-    "hotspot_detection":      70,
+    "basic_exergy":          200,
+    "exergoeconomic":        250,
+    "entropy_generation":    250,
+    "whatif_comparison":      80,
+    "avoidable_unavoidable":  70,
+    "hotspot_detection":      50,
 }
 
 
@@ -151,7 +156,7 @@ def call_claude_api(system_prompt: str, user_prompt: str) -> str:
         try:
             response = client.messages.create(
                 model=TEACHER_MODEL,
-                max_tokens=8192,
+                max_tokens=10240,
                 system=system_prompt,
                 messages=[{"role": "user", "content": user_prompt}],
                 temperature=0.7,
@@ -430,7 +435,7 @@ def batch_prepare(
                 "custom_id": custom_id,
                 "params": {
                     "model": TEACHER_MODEL,
-                    "max_tokens": 8192,
+                    "max_tokens": 10240,
                     "temperature": 0.7,
                     "system": system_prompt,
                     "messages": [{"role": "user", "content": user_prompt}],

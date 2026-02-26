@@ -31,7 +31,7 @@ TIMEOUT_SECONDS = 120
 
 # === Output Paths ===
 DATA_DIR = Path("data")
-DATA_V01_DIR = DATA_DIR / "v0.1"
+DATA_V01_DIR = DATA_DIR / "v0.2"
 DATA_REJECTED_DIR = DATA_DIR / "rejected"
 
 # === Dead State (Global Reference) ===

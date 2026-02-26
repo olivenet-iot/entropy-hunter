@@ -1,8 +1,14 @@
 """
-EntropyHunter — System Prompts for Teacher Model
+EntropyHunter — System Prompts for Teacher Model (v4 — Post-Audit Surgery)
 
-These system prompts tell Claude HOW to generate training examples.
-They define the analysis methodology, calculation style, and output format.
+CHANGE LOG v3→v4:
+- JSON block moved to BEGINNING of response (was at end, 97% position → model never learned it)
+- SYSTEM_ENTROPY_GENERATION: grade MUST have numerical value (was mentioned 88% but calculated 0.3%)
+- SYSTEM_ENTROPY_GENERATION: mechanism decomposition MUST have kW/K values (was mentioned 86% but split 8%)
+- SYSTEM_EXERGOECONOMIC: CRF calculation made mandatory with explicit formula chain (was 49% present)
+- SYSTEM_BASIC_EXERGY: T2s (isentropic outlet temp) mandatory for compressor/turbine/pump (was 5%)
+- SYSTEM_BASIC_EXERGY: Steam tables mandatory for boiler/steam_turbine (was equipment-dependent)
+- Output discipline tightened: "calculate, don't just mention"
 """
 
 # ============================================================
@@ -69,12 +75,29 @@ After calculations, always verify:
 9. For ideal gases: ex = Cp × [(T - T₀) - T₀ × ln(T/T₀)] + (R×T₀) × ln(P/P₀)
 10. For incompressible liquids: ex = Cp × [(T - T₀) - T₀ × ln(T/T₀)] + v×(P - P₀)
 
+## CRITICAL RULE: CALCULATE, DON'T JUST MENTION
+
+When a methodology requires a specific value (grade, mechanism split, CRF, T2s, etc.):
+- WRONG: "The thermodynamic perfection grade indicates how close the system operates to its reversible limit."
+- RIGHT: "Thermodynamic perfection grade: grade = η_ex / η_ex,rev = 0.42 / 1.0 = 0.42"
+
+- WRONG: "Entropy generation is primarily caused by heat transfer irreversibility and fluid friction."
+- RIGHT: "S_gen,HT = 0.209 kW/K (67%), S_gen,FF = 0.103 kW/K (33%)"
+
+Every metric must have a NUMBER. Prose descriptions without calculations are unacceptable.
+
 ## OUTPUT FORMAT
 
 Use this exact structure (markdown):
 
 ```
 ## {Analysis Type}: {Equipment Type} ({Subtype})
+
+### JSON Summary
+```json
+{machine-readable summary — see JSON rules below}
+```​
+
 **Dead state:** T₀ = {T0}°C ({T0_K} K), P₀ = {P0} kPa
 **Operating condition:** {mode}
 
@@ -105,35 +128,32 @@ Use this exact structure (markdown):
 {One sentence: key finding + primary recommendation.}
 ```
 
-## OUTPUT DISCIPLINE (CRITICAL)
+## JSON SUMMARY BLOCK (CRITICAL — MUST BE FIRST)
 
-1. Trust the input parameters — they are pre-validated and thermodynamically consistent. Do NOT question or re-derive them. Do NOT write paragraphs explaining why parameters might be wrong.
-2. Be CONCISE. Each calculation step: formula → substitution → result. No paragraphs between steps.
-3. For cooled compressors: use isothermal discharge (T₂ = T₁) or near-ambient aftercooled temperature. Do not compute adiabatic T₂ and then spend pages reconciling it.
-4. Always complete ALL sections including AV/UN split and recommendations. Never leave analysis incomplete.
-5. Target response length: 2000-4000 words. If you're writing more than 5000 words, you're being too verbose.
-6. End every response with the summary table and one-line summary. These are mandatory.
-7. MANDATORY: At the VERY END of your response (after everything else), include a machine-readable JSON block. This is used for automated quality validation. Format:
+The JSON block MUST appear at the VERY BEGINNING of your response, immediately after the title line, under a "### JSON Summary" header. This is used for automated quality validation.
 
+Format:
 ```json
-{"exergy_in_kW": 28.00, "exergy_out_kW": 12.15, "exergy_destroyed_kW": 15.85, "efficiency_pct": 43.4, "entropy_generation_kW_K": 0.05316, "bejan_number": 0.566, "avoidable_kW": null, "unavoidable_kW": null, "f_factor": null, "dead_state_T0_K": 298.15}
+{"exergy_in_kW": 28.00, "exergy_out_kW": 12.15, "exergy_waste_kW": 0.0, "exergy_destroyed_kW": 15.85, "efficiency_pct": 43.4, "entropy_generation_kW_K": 0.05316, "bejan_number": 0.566, "avoidable_kW": null, "unavoidable_kW": null, "f_factor": null, "dead_state_T0_K": 298.15}
 ```
 
 JSON block rules:
-- CRITICAL: exergy_out_kW is the PRODUCT exergy only (useful output). The energy balance check uses: Ex_in = Ex_product + Ex_waste + Ex_destroyed. Therefore also include waste exergy streams:
-- Use null for values not calculated in this analysis type (e.g., f_factor in basic exergy)
+- MUST be the FIRST content block after the title (before assumptions, before calculations)
+- exergy_out_kW = product exergy only (useful output)
+- exergy_waste_kW = sum of all waste exergy (flue gas, radiation, blowdown). Use 0.0 if none.
+- The balance MUST close: exergy_in_kW = exergy_out_kW + exergy_waste_kW + exergy_destroyed_kW (within 1%)
+- Use null for values not calculated in this analysis type
 - Values must EXACTLY match your calculated results (same rounding)
-- Must be the LAST thing in your response
 - Always include ALL 11 keys, never omit any
 
-Updated format with waste stream:
-```json
-{"exergy_in_kW": 5955.06, "exergy_out_kW": 1663.27, "exergy_waste_kW": 109.47, "exergy_destroyed_kW": 4182.32, "efficiency_pct": 27.9, "entropy_generation_kW_K": 14.03, "bejan_number": 0.702, "avoidable_kW": 554.80, "unavoidable_kW": 3627.52, "f_factor": null, "dead_state_T0_K": 298.15}
-```
+## OUTPUT DISCIPLINE (CRITICAL)
 
-- exergy_out_kW = product exergy only (steam, compressed air, chilled water, etc.)
-- exergy_waste_kW = sum of all waste exergy leaving the system (flue gas, radiation, blowdown, etc.). Use 0.0 if no waste streams exist (e.g., compressor, pump).
-- The balance MUST close: exergy_in_kW = exergy_out_kW + exergy_waste_kW + exergy_destroyed_kW (within 1%)
+1. Trust the input parameters — they are pre-validated and thermodynamically consistent. Do NOT question or re-derive them.
+2. Be CONCISE. Each calculation step: formula → substitution → result. No paragraphs between steps.
+3. For cooled compressors: use isothermal discharge (T₂ = T₁) or near-ambient aftercooled temperature. Do not compute adiabatic T₂ and then spend pages reconciling it.
+4. Always complete ALL sections including recommendations. Never leave analysis incomplete.
+5. Target response length: 2000-4000 words. If you're writing more than 5000 words, you're being too verbose.
+6. End every response with the summary sentence.
 """
 
 # ============================================================
@@ -164,6 +184,50 @@ Your response MUST include ALL of these sections:
 7. Avoidable/Unavoidable decomposition with reference efficiency
 8. Practical improvement recommendations (minimum 3)
 9. One-line summary
+
+## EQUIPMENT-SPECIFIC MANDATORY CALCULATIONS
+
+### FOR COMPRESSORS, TURBINES, AND PUMPS — T2s (Isentropic Outlet Temperature):
+You MUST calculate and show the isentropic outlet temperature T2s:
+
+```
+Isentropic outlet temperature:
+  T2s = T1 × (P2/P1)^((k-1)/k)
+  T2s = {T1_K} × ({P2}/{P1})^((1.4-1)/1.4)
+  T2s = {value} K ({value_C}°C)
+
+Actual outlet temperature (from isentropic efficiency):
+  η_is = (h2s - h1) / (h2 - h1)  →  T2 = T1 + (T2s - T1) / η_is
+  T2 = {value} K ({value_C}°C)
+
+Comparison: T2_actual = {X}°C vs T2s = {Y}°C  (ΔT_irreversibility = {Z}°C)
+```
+
+This T2s calculation is NON-NEGOTIABLE for any equipment with isentropic processes.
+For steam turbines: use h2s (isentropic enthalpy) instead of T2s since ideal gas assumption doesn't apply.
+
+### FOR BOILERS AND STEAM TURBINES — Steam Table References:
+You MUST reference steam table properties explicitly:
+
+```
+From steam tables at P = {X} MPa, T = {Y}°C:
+  h = {value} kJ/kg
+  s = {value} kJ/(kg·K)
+  
+At outlet conditions P = {X} MPa (saturated/superheated):
+  h = {value} kJ/kg  
+  s = {value} kJ/(kg·K)
+```
+
+For steam turbines, also calculate isentropic outlet enthalpy h2s:
+```
+From steam tables at P_outlet and s_inlet:
+  h2s = {value} kJ/kg
+  h2_actual = h1 - η_is × (h1 - h2s) = {value} kJ/kg
+```
+
+State the source as "Steam tables (IAPWS-IF97)" or "Superheated steam tables".
+Use realistic property values consistent with the given pressure and temperature.
 """
 
 SYSTEM_EXERGOECONOMIC = """
@@ -171,25 +235,67 @@ SYSTEM_EXERGOECONOMIC = """
 
 You are performing SPECO thermoeconomic analysis on a single equipment.
 
-After the basic exergy analysis, ADDITIONALLY calculate:
-1. Equipment purchase cost: PEC = a × W^b (power law correlation)
-2. Total investment: TCI = PEC × installation_factor
-3. Capital recovery factor: CRF = [i×(1+i)^n] / [(1+i)^n - 1]
-4. Investment cost rate: Ż = (TCI × CRF + TCI × maintenance_factor) / annual_hours
-5. Fuel cost rate: c_fuel given or calculated from energy price
-6. Destruction cost rate: Ċ_D = c_fuel × Ex_destroyed
-7. Exergoeconomic factor: f = Ż / (Ż + Ċ_D)
-8. Relative cost difference: r = (c_product - c_fuel) / c_fuel
-9. Total cost rate: Ċ_total = Ż + Ċ_D
+After the basic exergy analysis, ADDITIONALLY calculate the following.
+EVERY step must show formula → substitution → numerical result.
 
-Then determine the optimization strategy:
-- f < 0.25 AND r > 0.5 → INVEST (exergy destruction dominates costs)
-- f > 0.65 → DOWNSIZE (investment cost dominates)
-- 0.25 ≤ f ≤ 0.65 AND avoidable_ratio > 0.5 → PARAMETRIC OPTIMIZATION
-- 0.25 ≤ f ≤ 0.65 AND avoidable_ratio ≤ 0.5 → MAINTAIN
-- Otherwise → STRUCTURAL CHANGE
+### MANDATORY ECONOMIC CALCULATION CHAIN:
 
-Show all economic calculations step-by-step, just like thermodynamic ones.
+**Step 1 — Total Capital Investment:**
+```
+TCI = PEC × installation_factor
+TCI = {PEC} × {factor} = {value} EUR
+```
+
+**Step 2 — Capital Recovery Factor (NON-NEGOTIABLE, must show full calculation):**
+```
+CRF = [i × (1+i)^n] / [(1+i)^n - 1]
+
+Where: i = {interest_rate}/100 = {decimal}, n = {years} years
+
+(1+i)^n = (1 + {i})^{n} = {value}
+
+CRF = [{i} × {(1+i)^n}] / [{(1+i)^n} - 1]
+CRF = {numerator} / {denominator}
+CRF = {value}
+```
+
+**Step 3 — Investment Cost Rate:**
+```
+Ż = (TCI × CRF + TCI × maintenance_factor) / annual_hours
+Ż = ({TCI} × {CRF} + {TCI} × {maint}) / {hours}
+Ż = {value} EUR/h
+```
+
+**Step 4 — Destruction Cost Rate:**
+```
+c_fuel = energy_price / η_ex,fuel  [or given directly]
+Ċ_D = c_fuel × Ėx_D
+Ċ_D = {c_fuel} × {Ex_D} = {value} EUR/h
+```
+
+**Step 5 — Exergoeconomic Factor:**
+```
+f = Ż / (Ż + Ċ_D)
+f = {Z_dot} / ({Z_dot} + {C_dot_D})
+f = {value}
+```
+
+**Step 6 — Interpretation:**
+```
+f = {value}
+→ f < 0.25: Exergy destruction dominates → INVEST in better equipment
+→ 0.25 ≤ f ≤ 0.65: Balanced → PARAMETRIC OPTIMIZATION
+→ f > 0.65: Capital cost dominates → DOWNSIZE or simplify
+```
+
+**Step 7 — Relative cost difference:**
+```
+r = (c_product - c_fuel) / c_fuel = {value}
+```
+
+ALL 7 steps must appear with numerical values. Skipping any step is unacceptable.
+
+ORDERING RULE: The economic calculation chain (Steps 1-7) MUST appear AFTER the exergy analysis and BEFORE the Recommendations section. Do NOT let the thermodynamic analysis consume so much space that economic calculations are omitted. If necessary, keep the exergy analysis concise to leave room for the full SPECO chain.
 """
 
 SYSTEM_ENTROPY_GENERATION = """
@@ -197,24 +303,68 @@ SYSTEM_ENTROPY_GENERATION = """
 
 You are performing Bejan's Entropy Generation Minimization analysis.
 
-After the basic exergy analysis, ADDITIONALLY provide:
-1. Total entropy generation rate: S_gen = Ex_d / T₀ (Gouy-Stodola)
-2. Bejan number: N_s = Ex_d / Ex_in (dimensionless entropy generation)
-3. Entropy generation mechanism decomposition:
-   - S_gen,HT (heat transfer): Due to finite temperature differences
-   - S_gen,DP (pressure drop): Due to fluid friction
-   - S_gen,MIX (mixing/chemical): Due to mixing or chemical reactions
-   Use equipment-specific fractions from this reference:
-     Compressor: HT=25%, DP=70%, MIX=5%
-     Boiler: HT=20%, DP=5%, MIX=75%
-     Chiller: HT=55%, DP=35%, MIX=10%
-     Pump: HT=10%, DP=85%, MIX=5%
-     Heat Exchanger: HT=80%, DP=15%, MIX=5%
-     Steam Turbine: HT=15%, DP=75%, MIX=10%
-     Dryer: HT=45%, DP=10%, MIX=45%
-4. Identify dominant mechanism and explain WHY it dominates for this equipment
-5. Improvement potential: how much S_gen reduction is achievable
-6. Compare N_s to grade thresholds and explain implications
+After the basic exergy analysis, ADDITIONALLY provide the following.
+EVERY item must have a NUMERICAL VALUE — prose descriptions without numbers are unacceptable.
+
+### MANDATORY EGM CALCULATIONS:
+
+**1. Total entropy generation rate:**
+```
+S_gen = Ex_d / T₀ (Gouy-Stodola theorem)
+S_gen = {Ex_d} / {T0} = {value} kW/K
+```
+
+**2. Bejan number (dimensionless entropy generation):**
+```
+N_s = Ex_d / Ex_in
+N_s = {Ex_d} / {Ex_in} = {value}
+```
+
+**3. Thermodynamic perfection grade (NON-NEGOTIABLE — response is invalid without this):**
+```
+grade = η_ex (exergetic efficiency as decimal)
+grade = {efficiency_pct} / 100 = {value}
+
+Interpretation: grade = {value} means the system operates at {pct}% of its 
+thermodynamic potential. Remaining {1-grade} represents lost work potential.
+```
+
+**4. Entropy generation mechanism decomposition (NON-NEGOTIABLE — MUST include the table below with kW/K values):**
+
+Use the total S_gen and equipment-specific mechanism fractions:
+```
+Equipment-specific mechanism split reference:
+  Compressor: HT=25%, DP=70%, MIX=5%
+  Boiler: HT=20%, DP=5%, MIX=75%
+  Chiller: HT=55%, DP=35%, MIX=10%
+  Pump: HT=10%, DP=85%, MIX=5%
+  Heat Exchanger: HT=80%, DP=15%, MIX=5%
+  Steam Turbine: HT=15%, DP=75%, MIX=10%
+  Dryer: HT=45%, DP=10%, MIX=45%
+
+S_gen,HT  = S_gen × {HT_fraction} = {S_gen} × {frac} = {value} kW/K
+S_gen,DP  = S_gen × {DP_fraction} = {S_gen} × {frac} = {value} kW/K
+S_gen,MIX = S_gen × {MIX_fraction} = {S_gen} × {frac} = {value} kW/K
+
+Verification: {S_gen_HT} + {S_gen_DP} + {S_gen_MIX} = {total} kW/K ✓
+```
+
+Present as table:
+| Mechanism | S_gen [kW/K] | Contribution [%] |
+|-----------|-------------|-----------------|
+| Heat transfer (ΔT) | {value} | {pct}% |
+| Pressure drop (friction) | {value} | {pct}% |
+| Mixing/chemical | {value} | {pct}% |
+| **Total** | **{value}** | **100%** |
+
+**5. Dominant mechanism identification:**
+State which mechanism dominates and explain WHY it dominates for this specific equipment type.
+
+**6. Improvement potential:**
+Quantify how much S_gen reduction is achievable (kW/K and %) with specific measures.
+
+**7. Grade assessment:**
+Compare N_s to grade thresholds (A through F) and state the grade.
 """
 
 SYSTEM_WHATIF = """
@@ -232,6 +382,9 @@ Structure:
    - Cost savings (EUR/year) = energy_savings × energy_price
 5. Identify which metrics improved and which degraded
 6. Assess whether the change is worthwhile
+
+Note: Include the JSON summary block at the beginning using the BASELINE values.
+The scenario comparison should show deltas from the baseline.
 """
 
 SYSTEM_AVOIDABLE_UNAVOIDABLE = """
@@ -252,6 +405,8 @@ Interpretation rules:
 
 Show the complete calculation chain for both actual and reference conditions.
 The AV + UN split MUST equal total Ex_d within 1%.
+
+In the JSON summary block, include avoidable_kW and unavoidable_kW values.
 """
 
 SYSTEM_HOTSPOT_DETECTION = """
@@ -273,6 +428,8 @@ Then present the factory-level view:
 IMPORTANT: Keep individual equipment analyses concise (key results only).
 The value is in the COMPARATIVE ranking and prioritization, not individual deep dives.
 Target: 300-500 words per equipment, 500-800 words for factory-level synthesis.
+
+For the JSON summary block, use the TOTAL facility values (sum of all equipment Ex_d, etc.).
 """
 
 # ============================================================

@@ -146,6 +146,7 @@ Provide the analysis with step-by-step calculations, ending with a summary table
         "expected": {
             "has_dead_state": True,
             "has_steam_tables": True,
+            "has_T2s_calc": True,
             "efficiency_range": (50, 90),
             "has_summary_table": True,
             "has_json_block": True,
@@ -427,7 +428,11 @@ def check_structure(output: str, expected: dict) -> dict:
 
     # T2s calculation (compressor)
     if expected.get("has_T2s_calc"):
-        checks["T2s_mentioned"] = any(x in text for x in ["t₂s", "t2s", "isentropic temperature", "isentropic discharge"])
+        # v0.2: accept T2s (ideal gas) OR h2s (steam) — both are isentropic references
+        checks["T2s_mentioned"] = any(x in text for x in [
+            "t₂s", "t2s", "isentropic temperature", "isentropic discharge",
+            "h₂s", "h2s", "isentropic enthalpy", "isentropic outlet"
+        ])
 
     # Steam tables reference (turbine)
     if expected.get("has_steam_tables"):
@@ -449,7 +454,10 @@ def check_structure(output: str, expected: dict) -> dict:
 
     # --- Exergoeconomic checks ---
     if expected.get("has_crf_calc"):
-        checks["crf_calc"] = any(x in text for x in ["crf", "capital recovery", "annuity"])
+        has_crf_mention = any(x in text for x in ["crf", "capital recovery", "annuity"])
+        has_crf_value = bool(re.search(r'crf\s*=\s*[\d.]+', text))
+        checks["crf_calc"] = has_crf_mention
+        checks["crf_value"] = has_crf_value
     if expected.get("has_cost_rate"):
         checks["cost_rate"] = any(x in text for x in ["ż", "z_dot", "cost rate", "eur/h", "€/h"])
     if expected.get("has_f_factor"):
@@ -467,9 +475,16 @@ def check_structure(output: str, expected: dict) -> dict:
     if expected.get("has_bejan_number"):
         checks["bejan_number"] = any(x in text for x in ["bejan", "n_s", "entropy generation number"])
     if expected.get("has_grade"):
-        checks["grade"] = any(x in text for x in ["grade a", "grade b", "grade c", "grade d", "grade e", "grade f"])
+        # v0.2: check for numerical grade value (grade = 0.XX) OR letter grade
+        has_grade_value = bool(re.search(r'grade\s*=\s*[\d.]+', text))
+        has_grade_letter = any(x in text for x in ["grade a", "grade b", "grade c", "grade d", "grade e", "grade f"])
+        checks["grade"] = has_grade_value or has_grade_letter
     if expected.get("has_mechanism_decomposition"):
-        checks["mechanism_decomp"] = any(x in text for x in ["heat transfer", "friction", "pressure drop", "mixing"])
+        # v0.2: check for mechanism names AND numerical kW/K values
+        has_mechanism_names = any(x in text for x in ["heat transfer", "friction", "pressure drop", "mixing"])
+        has_mechanism_values = bool(re.search(r's_gen.*?=\s*[\d.]+\s*kw/k', text))
+        checks["mechanism_decomp"] = has_mechanism_names
+        checks["mechanism_values"] = has_mechanism_values
 
     # --- What-if checks ---
     if expected.get("has_baseline_analysis"):

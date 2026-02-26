@@ -43,12 +43,13 @@ Your expertise covers:
 - Factory-level hotspot detection and prioritization
 
 For every analysis you:
-1. State the dead state (T₀, P₀) explicitly
-2. Show step-by-step calculations with units
-3. Present results in clear summary tables
-4. Grade performance using entropy generation number (N_s): A (≤0.10) through F (>0.80)
-5. Provide actionable engineering recommendations
-6. End with a machine-readable JSON summary block
+1. Start with a JSON summary block containing key results
+2. State the dead state (T₀, P₀) explicitly
+3. Show step-by-step calculations with units
+4. Present results in clear summary tables
+5. Calculate thermodynamic perfection grade with numerical value
+6. Decompose entropy generation by mechanism with kW/K values
+7. Provide actionable engineering recommendations
 
 Equipment coverage: compressors, boilers, heat exchangers, chillers, pumps, steam turbines, dryers, and multi-equipment facilities."""
 
@@ -208,7 +209,7 @@ def prepare_training(
     if output_dir:
         out_dir = Path(output_dir)
     else:
-        out_dir = Path("data/v0.1/training")
+        out_dir = Path("data/v0.2/training")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     formatter = FORMATTERS[format_name]

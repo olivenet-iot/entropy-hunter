@@ -1,0 +1,184 @@
+{
+  "model": "entropy-hunter",
+  "timestamp": "20260226_185006",
+  "num_tests": 10,
+  "results": [
+    {
+      "test_id": "basic-compressor-01",
+      "category": "basic_exergy",
+      "equipment": "compressor",
+      "difficulty": "easy",
+      "passed_checks": 3,
+      "total_checks": 5,
+      "checks": {
+        "dead_state": true,
+        "summary_table": true,
+        "json_block": false,
+        "recommendations": true,
+        "efficiency_physical": null,
+        "T2s_mentioned": false
+      },
+      "response_time_s": 286.6,
+      "response_length": 6175
+    },
+    {
+      "test_id": "basic-boiler-01",
+      "category": "basic_exergy",
+      "equipment": "boiler",
+      "difficulty": "medium",
+      "passed_checks": 3,
+      "total_checks": 4,
+      "checks": {
+        "dead_state": true,
+        "summary_table": true,
+        "json_block": false,
+        "efficiency_physical": null,
+        "waste_streams": true
+      },
+      "response_time_s": 350.4,
+      "response_length": 7133
+    },
+    {
+      "test_id": "basic-hx-01",
+      "category": "basic_exergy",
+      "equipment": "heat_exchanger",
+      "difficulty": "medium",
+      "passed_checks": 3,
+      "total_checks": 4,
+      "checks": {
+        "dead_state": true,
+        "summary_table": true,
+        "json_block": false,
+        "efficiency_physical": null,
+        "energy_balance": true
+      },
+      "response_time_s": 484.9,
+      "response_length": 7930
+    },
+    {
+      "test_id": "basic-pump-01",
+      "category": "basic_exergy",
+      "equipment": "pump",
+      "difficulty": "easy",
+      "passed_checks": 3,
+      "total_checks": 4,
+      "checks": {
+        "dead_state": true,
+        "summary_table": true,
+        "json_block": false,
+        "efficiency_physical": true,
+        "efficiency_value": 66.24
+      },
+      "response_time_s": 269.6,
+      "response_length": 6176
+    },
+    {
+      "test_id": "basic-turbine-01",
+      "category": "basic_exergy",
+      "equipment": "steam_turbine",
+      "difficulty": "hard",
+      "passed_checks": 4,
+      "total_checks": 5,
+      "checks": {
+        "dead_state": true,
+        "summary_table": true,
+        "json_block": false,
+        "efficiency_physical": null,
+        "T2s_mentioned": true,
+        "steam_tables": true
+      },
+      "response_time_s": 493.9,
+      "response_length": 9258
+    },
+    {
+      "test_id": "exergoecon-chiller-01",
+      "category": "exergoeconomic",
+      "equipment": "chiller",
+      "difficulty": "hard",
+      "passed_checks": 1,
+      "total_checks": 7,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "crf_calc": false,
+        "crf_value": false,
+        "cost_rate": false,
+        "f_factor": true,
+        "f_factor_valid": false
+      },
+      "response_time_s": 418.7,
+      "response_length": 7452
+    },
+    {
+      "test_id": "egm-compressor-01",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "medium",
+      "passed_checks": 4,
+      "total_checks": 7,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": false,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 479.0,
+      "response_length": 9013
+    },
+    {
+      "test_id": "whatif-boiler-01",
+      "category": "whatif_comparison",
+      "equipment": "boiler",
+      "difficulty": "medium",
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "baseline": true,
+        "scenario": true,
+        "comparison_table": true,
+        "annual_savings": true
+      },
+      "response_time_s": 404.0,
+      "response_length": 7937
+    },
+    {
+      "test_id": "hotspot-factory-01",
+      "category": "hotspot_detection",
+      "equipment": "factory",
+      "difficulty": "hard",
+      "passed_checks": 4,
+      "total_checks": 5,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "recommendations": true,
+        "multi_equipment": true,
+        "ranking": true
+      },
+      "response_time_s": 520.4,
+      "response_length": 9420
+    },
+    {
+      "test_id": "avun-pump-01",
+      "category": "avoidable_unavoidable",
+      "equipment": "pump",
+      "difficulty": "hard",
+      "passed_checks": 3,
+      "total_checks": 5,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "avoidable": true,
+        "unavoidable": true,
+        "avoidable_ratio": false
+      },
+      "response_time_s": 217.0,
+      "response_length": 4578
+    }
+  ]
+}
