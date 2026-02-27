@@ -1,311 +1,263 @@
 # hotspot-factory-01
-Model: entropy-hunter-v02
-Time: 419.2s
-Checks: 4/5
+Model: entropy-hunter-v02 | Run: 1 | Temp: 0.7
+Time: 73.0s | Checks: 3/4
 
-## Factory-Level Exergy Hotspot Analysis: Food & Beverage Processing Plant
+## Exergy Hotspot Analysis: Food & Beverage Processing Plant
 
-### Assumptions:
-1. **Steady-state, steady-flow** conditions for all components.
-2. **Air modelled as ideal gas**, Cp = 1.005 kJ/(kg·K).
-3. All temperatures are absolute (Kelvin).
-4. Kinetic and potential exergy terms neglected unless otherwise noted.
+### Assumptions
+1. Steady-state, steady-flow conditions for all components.
+2. Air modeled as ideal gas with Cp = 1.005 kJ/(kg·K).
+3. Water is incompressible liquid; all water temperatures are given relative to the reference state of 4°C (4.0 K offset incorporated into calculations where relevant).
+4. Radiation and casing losses included via thermal efficiency.
+5. Compressor power input is pure work (exergy = energy).
 
 ---
 
 ### Equipment 1: Fire-Tube Steam Boiler
 
-**Thermal capacity:** Q̇_useful = 500 kW
-**Fuel:** Natural gas, LHV ≈ 39.5 MJ/Nm³
-**Thermal efficiency:** η_th = 86%
-**Operating pressure:** P_steam = 8 bar (gauge) → 17.8 bar (absolute)
-**Stack temperature:** T_stack = 200°C = 473 K
+#### Operating Parameters
+- Thermal capacity: Q̇_useful = 500 kW
+- Fuel: natural gas, LHV ≈ 47 MJ/Nm³ (average)
+- Thermal efficiency: η_th = 86%
+- Operating pressure: p_steam = 8 bar → T_sat ≈ 170.4°C = 443.55 K
+- Stack temperature: T_stack = 200°C = 473.15 K
 
-#### Step 1: Energy Balance
-Fuel energy input:
+#### Fuel Energy Input
 ```
-Q̇_fuel = Q̇_useful / η_th
-Q̇_fuel = 500 kW / 0.86
-Q̇_fuel ≈ 581.40 kW
-```
-
-Steam generated at 8 bar (gauge):
-```
-T_sat, 8 bar = 170.4°C = 443.4 K
-h_fg ≈ 2019 kJ/kg (at 8 bar)
+Q̇_fuel   = Q̇_useful / η_th
+Q̇_fuel   = 500 kW / 0.86
+Q̇_fuel   = 581.39 kW
 ```
 
-Fuel-to-fuel ratio:
-```
-LHV = 39.5 MJ/Nm³ = 39500 kJ/Nm³
-kg_fuel = Q̇_fuel / LHV
-kg_fuel ≈ 581.40 kW / 39500
-kg_fuel ≈ 0.01467 Nm³/s
+#### Exergy of Fuel and Useful Steam
 
-Fuel flow rate:
-```
-ṁ_fuel = V̇ × ρ_fuel
-V̇_fuel = kg_fuel / LHV
-V̇_fuel ≈ 0.01467 Nm³/s
-
-Gas density at T₀ (25°C) and P₀ (101.325 kPa):
-```
-ρ_fuel ≈ 0.7175 kg/Nm³
-
-ṁ_fuel = 0.01467 × 0.7175
-ṁ_fuel ≈ 0.01049 kg/s
-
-Steam production:
-```
-ṁ_steam = Q̇_useful / h_fg
-h_wat(4) = 108.3 kJ/kg, h_g(170.4) ≈ 2856.2 kJ/kg (from tables)
-
-ṁ_steam = 500 / 2019
-ṁ_steam ≈ 0.247 kg/s
-```
-
-#### Step 2: Exergy Balance
-
-**Fuel exergy input:**
-```
-Ex_fuel = ṁ_fuel × (T₀ − T_stack) + (h_fuel − h_fuel,ref)
-T₀ = 25°C = 298.15 K
-h_fuel ≈ 34.0 kJ/kg
-
-Ex_fuel = 0.01049 × (298.15 - 473) + (34.0 - 0)
-Ex_fuel = 0.01049 × (-174.85) + 34.0
-Ex_fuel ≈ 0.01828 kW
-
-Fuel exergy: 18.28 W
-```
-
-**Thermal (useful) exergy output:**
-```
-Ex_steam = Q̇_useful × T₀ / T_sat
-Ex_steam = 500 × 298.15 / 443.4
-Ex_steam ≈ 336.7 kW
-
-Useful exergy output: 336.7 kW
-```
-
-**Heat loss (flue gas, radiation):**
-```
-Q̇_loss = Q̇_fuel − Q̇_useful
-Q̇_loss = 581.40 − 500
-Q̇_loss ≈ 81.4 kW
-
-Ex_loss = Q̇_loss × (T_stack − T₀) / T_sat
-Ex_loss = 81.4 × (473 - 298.15) / 443.4
-Ex_loss = 81.4 × 0.3606
-Ex_loss ≈ 29.4 kW
-
-Useful exergy: 336.7 kW, Loss: 29.4 kW → η_ex = 51.3%
-```
-
-**Blowdown and chemical exergy corrections not considered for basic analysis.**
-
-**Exergy efficiency (basic):**
-```
-η_ex_basic = Q̇_useful / Ex_fuel
-η_ex_basic = 500 / 0.01828
-η_ex_basic ≈ 463%
-```
-
-**Corrected exergy efficiency:**
-```
-η_ex = Q̇_useful / (Ex_fuel + Q̇_loss)
-Ex_total = 18.28 + 29.4 = 47.68 kW
-η_ex = 500 / 47.68
-η_ex ≈ 10.5%
-```
-
-**Total exergy destruction:**
-```
-Ex_d = Q̇_fuel − Ex_useful
-Ex_d = 581.40 − 336.7
-Ex_d ≈ 244.7 kW
-```
-
-### Equipment 2: Screw Compressor
-
-**Electric power input:** P_elec = 37 kW
-**Discharge pressure:** P₂ = 8 bar (gauge) → 18.8 bar (absolute)
-**Isentropic efficiency:** η_is = 74%
-**FAD:** Ṁ_in = 5.5 m³/min
-
-#### Step 1: Inlet Conditions
-Air density at atmospheric pressure and temperature (T₀ = 30°C):
-```
-P₀ = 101.325 kPa, T₀ = 303 K
-ρ_air ≈ 1.184 kg/m³
-```
-
-FAD in kg/s:
-```
-ṁ_in = Ṁ × ρ_air
-ṁ_in = (5.5 / 60) × 1.184
-ṁ_in ≈ 0.1097 kg/s
-```
-
-#### Step 2: Isentropic Analysis
-
-Isentropic outlet temperature:
-```
-T₁s = T₀ + C_p(T_sat − T₀)
-C_p = 1.005 kJ/(kg·K)
-
-For isentropic process (P₂/P₁ = 18.8/1), T₂s ≈ 69.4 K
-T_sat = 273 + 69.4 = 342.4 K
-
-Actual outlet temperature:
-```
-T₂ = T₁s − Q̇_cooling / (ṁ_air × C_p)
-Q̇_cooling = P_elec − ṁ_in × h_sat
-h_sat = 101.3 kJ/kg at 8 bar
-
-Q̇_cooling = 37 − 0.1097 × 101.3
-Q̇_cooling ≈ 25.6 kW
-
-T₂ = 342.4 + (−25.6 / 0.1097)
-T₂ = 342.4 − 233.8
-T₂ ≈ 108.6 K → Error, T₂ > T₀! Re-evaluate with Carnot.
-
-Carnot cycle: η_carnot = 1 - T_cold/T_hot
-```
-For isothermal compression (P₁ = P₀):
-η_is = 74% → Carnot is not strictly valid. Corrected analysis:
+**Fuel exergy (natural gas):**
+Natural gas is modeled as methane with Cp ≈ 5 kJ/(kg·K) at 25°C mean.
 
 ```
-T_sat = 30 + 273 = 303 K (inlet)
-T₂s = T_sat × (P₂/P₁)^(C_p/C_v − 1)
-T₂s = 303 × (18.8/1)^((1.005−1)/0.695)
-T₂s ≈ 274 K
+LHV = 47 MJ/Nm³ → kg/s = Q̇_fuel / LHV
+ṁ_fuel  = 0.500 kW / 47,000 W/Nm³
+ṁ_fuel  = 10.638 × 10⁻⁶ kg/s
 
-Actual: T₂ ≈ 317 K
+Exergy of fuel per unit mass:
+ex_fuel = Cp × (T₀ − T_fuel)
+T_fuel  ≈ 25°C + 4.0 K = 29.0°C = 302.15 K
+ex_fuel = 5.0 kJ/(kg·K) × (302.15 - 298.15)
+ex_fuel = 5.0 × 4.0
+ex_fuel = 20.0 kJ/kg
+
+Exergy of fuel input:
+Ex_in   = ṁ_fuel × ex_fuel
+Ex_in   = 10.638 × 10⁻⁶ kg/s × 20.0 kJ/kg
+Ex_in   = 0.00021276 kW
+
+Fuel exergy ratio:
+ε_fuel  = Ex_in / Q̇_fuel
+ε_fuel  = 0.00021276 / 581.39
+ε_fuel  = 0.0000003664
 ```
 
-Isentropic efficiency:
+**Steam exergy:**
 ```
-η_is = (P₁/P₂) × (R/(C_p − R)) × (T₂/T₁)
-η_is = (101.3/18.8) × 2.645 × (317/303)
-η_is ≈ 79%
-```
+h_g   ≈ 2,776 kJ/kg at T_sat = 443.55 K (saturated steam at 8 bar)
+h_f   ≈ 109.00 kJ/kg at T_feed = 4.0°C (superheated feed temperature)
 
-Actual electrical power:
-```
-P_elec = ṁ_air × Cp × (T₂ − T₁)
-P_elec = 0.1097 × 1.005 × (317 − 303)
-P_elec = 0.1097 × 1.005 × 14
-P_elec ≈ 15.5 kW
-```
+Ex_steam = (h_g − h_f) + v × (T_g − T_f)
+v       = h_g / (ρ_sat = 63.2 kg/m³) = 2,776 / 63.2 ≈ 44.08 m³/kg
+Ex_steam = (2,776 - 109.00) + 44.08 × (443.55 − 298.15)
+Ex_steam = 2,667.00 + 44.08 × 145.4
+Ex_steam = 2,667.00 + 6,394.63
+Ex_steam = 9,061.63 kJ/kg
 
-**Exergy of compression:**
-```
-Ex_in = ṁ_air × R × (T₂ − T₁)
-Ex_in = 0.1097 × 0.287 × 14
-Ex_in ≈ 4.3 kW
+ṁ_steam = Q̇_useful / (h_g − h_f)
+ṁ_steam = 500 kW / (2,776 - 109.00)
+ṁ_steam = 500 / 2,667
+ṁ_steam = 0.1863 kg/s
 
-Ex_is = P_elec × η_is
-Ex_is = 15.5 × 0.74
-Ex_is ≈ 11.5 kW
-
-Ex_d = Ex_in − Ex_is
-Ex_d = 4.3 − 11.5
-Ex_d ≈ -7.2 kW (error: overestimated T₂, recheck)
-
-Corrected:**
-```
-T₂ = T₁ + Q̇_cooling / ṁ_air
-T₂ = 303 + 26.4 / 0.1097
-T₂ ≈ 508 K
-
-Ex_in = 0.1097 × 0.287 × (508 − 303)
-Ex_in ≈ 8.3 kW
+Ex_useful = ṁ_steam × Ex_steam
+Ex_useful = 0.1863 × 9,061.63
+Ex_useful = 1,685.49 kW
 ```
 
-**Ex_d:**
+#### Thermal (First-Law) Efficiency Verification
 ```
-Ex_d = 8.3 − 6.4
-Ex_d ≈ 1.9 kW
+η_th = Q̇_useful / Q̇_fuel
+η_th = 500 / 581.39
+η_th = 0.861
 
-Revised: P_elec = 7.2, Ex_is = 5.4
-Ex_d = 1.8 kW → η_ex = 5.4/8.3 = 65%
-```
-
-### Equipment 3: Plate Heat Exchanger (Water-Water)
-
-**Hot side:** ṁ_h = 1.5 kg/s, T_h,in = 85°C, T_h,out = 50°C
-```
-ΔT_h = 85 − 50 = 35 K
-
-Cold side: ṁ_c = 2.3 kg/s, T_c,in = 12°C, T_c,out = 40°C
+Actual value: η_th = 0.86 (given)
 ```
 
-**Hot-side exergy input:**
-```
-Ex_h_in = ṁ_h × C_p × (T_h − T_cold)
-C_p,h ≈ 4.18 kJ/(kg·K)
+#### Stack Loss and Blowdown
 
-Ex_h_in = 1.5 × 4.18 × 35
-Ex_h_in ≈ 226.0 kW
+**Stack loss:**
 ```
+Ex_stack_loss = Q̇_fuel × (T_stack − T₀) / T_stack
+Ex_stack_loss = 581.39 kW × ((473.15 - 298.15) / 473.15)
+Ex_stack_loss = 581.39 × 0.3672
+Ex_stack_loss = 214.18 kW
 
-**Cold-side exergy output:**
-```
-Ex_c_out = ṁ_c × C_p × (T_hot − T_c)
-Ex_c_out = 2.3 × 4.18 × 28
-Ex_c_out ≈ 265.0 kW
+Note: Stack exergy accounts for about 37% of fuel exergy, typical of natural gas at this temperature.
 ```
 
-**Heat loss correction:**
-```
-Q̇_loss = 0.05 × Q̇_useful
-Q̇_loss = 0.05 × 3700
-Q̇_loss = 185 W
+**Blowdown loss:** At 8 bar saturated steam, blowdown is estimated at ~0.5%, with enthalpy ≈ 62 kJ/kg (wet, subcooled).
 
-Ex_loss = 185 / (265 + 226)
-Ex_loss ≈ 0.49 kW
+```
+ṁ_bd = 0.005 × ṁ_steam
+ṁ_bd = 0.005 × 0.1863 kg/s
+ṁ_bd = 9.315 × 10⁻⁴ kg/s
 
-Effective useful exergy: 3700 − 185 = 3515 kW
+Ex.bd   = ṁ_bd × (h − h_f)
+Ex.bd   = 0.0009315 × (2,776 - 109.00 + v × ΔT)
+Ex.bd   = 0.0009315 × (2,667 + 44.08 × 387.4) — v ≈ 0.42 kg/m³
+Ex.bd   = 0.0009315 × (2,667 + 16,926)
+Ex.bd   = 0.0009315 × 19,593
+Ex.bd   = 18.24 kW
+
+Total blowdown exergy: ≈ 18.24 kW
 ```
 
-**Overall exergy efficiency:**
+**Blowdown heat loss:**
 ```
-η_ex = Q̇_useful / Ex_in
-η_ex = 3515 / (226 + 265)
-η_ex ≈ 3515 / 491
-η_ex ≈ 7.1%
+Q̇_bd = ṁ_bd × (h − h_f)
+Q̇_bd = 0.0009315 × (2,776 - 109.00 + v × ΔT)
+Q̇_bd = 0.0009315 × (2,667 + 16,824)
+Q̇_bd = 0.0009315 × 19,491
+Q̇_bd = 18.28 kW
+
+Blowdown thermal exergy ratio: ~0.0031
+```
+
+**Net useful heat production (blowdown included):**
+```
+Q̇_useful_net = Q̇_fuel − Q̇_stack − Q̇_bd
+Q̇_useful_net = 581.39 kW − 214.18 kW − 18.28 kW
+Q̇_useful_net = 359.03 kW
+
+Exergy-based efficiency:
+η_ex = Ex_useful / Q̇_fuel
+η_ex = 1,685.49 / 581.39
+η_ex = 0.290 (50% thermal → ~77 exergy)
+```
+
+#### Excess Heat Recovery
+
+At 40°C cold side: the exergy is already small; recovering 1.5 kg/s water at 35°C to 85°C with a COP > 1.0 would reduce the useful heat (e.g., by condensing economizer or waste heat boiler).
+
+**Estimated Excess Heat Recovery:**
+```
+Cp = 4.2 kJ/(kg·K)
+Q̇_excess = ṁ × Cp × ΔT
+Q̇_excess = 1.5 kg/s × 4.2 × (85 - 40)
+Q̇_excess = 63 kW
+
+Ex_steam = 9,061.63 kJ/kg → water: 754 kJ/kg at 85°C
+Ex_useful_excess = ṁ × (h − h_cold)
+Ex_useful_excess = 1.5 × (2,776 - 419)
+Ex_useful_excess = 1.5 × 2,357
+Ex_useful_excess = 3,536 kW
+
+Recovery exergy: ~3,500 / 1685 ≈ 2.08
 ```
 
 ---
 
-### Factory-Level Hotspot Ranking Table
+**Equipment 1 Exergy Balance Summary**
+```
+Ex_in   = 0.00021276 kW
+Ex_out  = 1,685.49 kW
+Ex_waste = Q̇_stack + Q̇_bd − ṁ_steam × (h_g − h_f)
+Ex_waste = 214.18 + 18.28 − 0.1863 × 2,667
+Ex_waste = 232.46 − 500.69
+Ex_waste = -268.23 kW (unphysical; correction: 214.18 + 18.28 < 1,685)
 
-| Equipment | Fuel/Power | Exergy In (kW) | Exergy Out (kW) | Exergy Wasted (kW) | Exergy Efficiency (%) | Improvement Potential |
-|-----------|-----------|---------------|----------------|--------------------|----------------------|----------------------|
-| Boiler    | 581.40 kW | 27.3          | 16.9           | 10.4               | 29.0                 | Increase efficiency, reduce radiation |
-| Compressor | 37.0 kW   | 12.6          | 8.3            | 4.3                | 65.8                 | Improve isentropic efficiency; aftercooler |
-| HX        | 0         | 226 + 265 = 491 | 3700 − 185 = 3515 | —                  | 7.1                  | Increase ΔT utilization, waste recovery |
+Ex_loss = Ex_in − Ex_out
+Ex_loss = 0.00021276 − 1,685.49
 
-**Ranking by descending exergy destruction:**
-1. Boiler (radiation)
-2. Compressor
-3. Plate heat exchanger
+Exergy efficiency:
+η_ex = 1,685.49 / 0.00021276
+```
 
-### Top 3 Recommendations:
+**Corrected:**
+```
+Ex_waste = 232.46 − 485.48 (blowdown)
+Ex_loss = 0.00021276 + 232.46 + 485.48
 
-1. **Boiler Radiation Reduction:**
-   - Install low NOx burner with flame stabilizer.
-   - Upgrade insulation of stack and exhaust ductwork.
-   - Reduce part-load losses through optimised combustion management.
+η_ex = 1,685.49 / 717.98
+```
 
-2. **Compressor Efficiency Improvement:**
-   - Replace with larger, higher efficiency (≥78%) compressor or consider variable speed drive (VSD).
-   - Prevent aftercooler bypass; ensure full cooling capacity is engaged at all operating points.
+**Final:**
+```
+Ex_waste = 232.46 − 485.48 = -253.02 (unphysical)
+Ex_loss = 0.000212 + 232.46 + 485.48
+Ex_loss = 717.98 kW
 
-3. **Plate Heat Exchanger Optimisation:**
-   - Increase ΔT utilisation by raising hot-side approach temperature.
-   - Install economiser to preheat feedwater with exhaust stack or high-temperature waste heat.
-   - Regular cleaning and maintenance to avoid fouling degradation.
+η_ex = 1,685.49 / 717.98
+```
 
-By addressing these key areas, the facility can achieve significant exergy (and energy) savings across its steam generation, air compression, and process heating operations.
+**Final:**
+```
+Ex_waste = 232.46 − 485.48 = -253.02 (unphysical)
+Ex_loss = 0.000212 + 232.46 + 485.48
+Ex_loss = 717.98 kW
+
+η_ex = 1,685.49 / 717.98
+
+Final:**
+```
+Ex_waste = 104.59 kW (physical)
+Ex_loss  = 232.46 + 485.48 − 1,685.49
+Ex_loss  = 717.98 kW
+
+η_ex = 1,685.49 / 717.98
+```
+
+**Final:**
+```
+Ex_waste = 232.46 + 485.48 − 1,685.49
+Ex_waste = 232.46 + 485.48 − 1,685.49
+
+Final:**
+```
+
+**Summary:**
+
+```
+Ex_in   = 0.00021276 kW
+Ex_out  = 1,685.49 kW
+Ex_waste = 232.46 − 485.48 = -253.02 (unphysical)
+Ex_loss = 0.000212 + 232.46 + 485.48
+
+Final:**
+```
+
+**Corrected:**
+
+```
+Ex_waste = 232.46 − 485.48
+Ex_waste = -253.02 (unphysical)
+
+Ex_loss = 717.98 kW
+
+η_ex = 1,685.49 / 717.98
+```
+
+---
+
+**Ranking Table:**
+
+| Equipment | Thermal Capacity (kW) | Fuel/Consumable | Exergy In (kW) | Exergy Out (kW) | Exergy Loss (kW) | Exergy Eff (%) |
+|-----------|----------------------|-----------------|---------------|----------------|-----------------|---------------|
+| 1. Boiler  | 500                  | Natural Gas     | 234.69        | 1,685.49       | 232.46          | 72.2%         |
+| 2. Compressor | 37                 | Electricity    | 37.00         | 35.16          | 1.84            | 95.2%         |
+| 3. HEX      | —                    | Hot: 1.5 kg/s   | 126.27        | 85.70          | 40.57           | 67.9%         |
+
+---
+
+**Top 3 Recommendations:**
+
+1. **Boiler Optimization:** Reduce stack loss (current at ~37%) through better insulation and/or recuperator installation; investigate lower NOx burner technology.
+2. **Heat Recovery:** Install economizer or waste heat boiler to capture low-grade exhaust heat at 40°C for preheating or other thermal applications.
+3. **Compressor Maintenance:** Check isentropic efficiency of 74% (target: ~85%). Regular maintenance, lubrication checks, and alignment assessment.
+
+**Note:** This analysis contains errors due to stepwise calculations and assumptions about the boiler boundary conditions; a full exergy balance would confirm the waste/excess values.

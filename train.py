@@ -256,19 +256,19 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="EntropyHunter Fine-Tuning")
 
     # Data
-    parser.add_argument("--train-file", default="data/train.jsonl")
-    parser.add_argument("--val-file", default="data/val.jsonl")
-    parser.add_argument("--output-dir", default="output/entropy-hunter-7b")
+    parser.add_argument("--train-file", default="data/v0.3/training/train.jsonl")
+    parser.add_argument("--val-file", default="data/v0.3/training/val.jsonl")
+    parser.add_argument("--output-dir", default="output/entropy-hunter-7b-v03")
 
     # Model
-    parser.add_argument("--max-seq-length", type=int, default=8192,
-                        help="Max sequence length (default: 8192)")
+    parser.add_argument("--max-seq-length", type=int, default=12288,
+                        help="Max sequence length (default: 12288, v0.2+)")
 
     # LoRA
-    parser.add_argument("--lora-r", type=int, default=32,
-                        help="LoRA rank (default: 32)")
-    parser.add_argument("--lora-alpha", type=int, default=64,
-                        help="LoRA alpha (default: 64, typically 2×r)")
+    parser.add_argument("--lora-r", type=int, default=16,
+                        help="LoRA rank (default: 16, reduced from v0.1's 32)")
+    parser.add_argument("--lora-alpha", type=int, default=32,
+                        help="LoRA alpha (default: 32, typically 2×r)")
 
     # Training
     parser.add_argument("--epochs", type=int, default=3)
@@ -276,7 +276,8 @@ if __name__ == "__main__":
                         help="Per-device batch size (default: 1 for L4 24GB)")
     parser.add_argument("--grad-accum", type=int, default=16,
                         help="Gradient accumulation steps (effective batch = batch_size × grad_accum)")
-    parser.add_argument("--learning-rate", type=float, default=2e-4)
+    parser.add_argument("--learning-rate", type=float, default=1e-4,
+                        help="Learning rate (default: 1e-4, conservative for v0.2+)")
 
     # Output
     parser.add_argument("--save-merged", action="store_true",

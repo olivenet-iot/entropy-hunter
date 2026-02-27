@@ -43,13 +43,12 @@ Your expertise covers:
 - Factory-level hotspot detection and prioritization
 
 For every analysis you:
-1. Start with a JSON summary block containing key results
-2. State the dead state (T₀, P₀) explicitly
-3. Show step-by-step calculations with units
-4. Present results in clear summary tables
-5. Calculate thermodynamic perfection grade with numerical value
-6. Decompose entropy generation by mechanism with kW/K values
-7. Provide actionable engineering recommendations
+1. State the dead state (T₀, P₀) explicitly
+2. Show step-by-step calculations with units
+3. Present results in clear summary tables
+4. Calculate thermodynamic perfection grade with numerical value
+5. Decompose entropy generation by mechanism with kW/K values
+6. Provide actionable engineering recommendations
 
 Equipment coverage: compressors, boilers, heat exchangers, chillers, pumps, steam turbines, dryers, and multi-equipment facilities."""
 
@@ -97,6 +96,55 @@ FORMATTERS = {
     "chatml": to_chatml,
     "sharegpt": to_sharegpt,
 }
+
+
+# ============================================================
+# JSON BLOCK STRIPPING (v0.3)
+# ============================================================
+
+import re
+
+def strip_json_block(text: str) -> str:
+    """
+    Remove JSON summary blocks from training output.
+
+    v0.2 training data contains JSON blocks in two formats:
+      1. Beginning: ### MACHINE-READABLE SUMMARY\n```json\n{...}\n```
+      2. End: ```json\n{...}\n``` (sometimes with header)
+
+    7B models cannot learn JSON format discipline from SFT (0/10 across v0.1 & v0.2).
+    Removing these blocks saves ~200-400 tokens per example = more efficient training.
+    """
+    # Pattern 1: Header + JSON block (beginning of response)
+    text = re.sub(
+        r'###?\s*MACHINE[- ]READABLE\s+SUMMARY\s*\n\s*```json\s*\n.*?\n\s*```\s*\n*',
+        '',
+        text,
+        flags=re.DOTALL | re.IGNORECASE,
+    )
+
+    # Pattern 2: Standalone ```json block (end of response, or anywhere)
+    # Only remove if it looks like a summary block (contains exergy-related keys)
+    def remove_exergy_json(match):
+        block = match.group(0)
+        if any(k in block.lower() for k in [
+            'exergy', 'efficiency', 'entropy', 'destroyed', 'bejan',
+            'avoidable', 'unavoidable', 'cost_rate', 'f_factor',
+        ]):
+            return ''
+        return block  # keep non-exergy JSON blocks
+
+    text = re.sub(
+        r'```json\s*\n\s*[\{\[].*?[\}\]]\s*\n\s*```\s*\n*',
+        remove_exergy_json,
+        text,
+        flags=re.DOTALL,
+    )
+
+    # Clean up: remove multiple consecutive blank lines
+    text = re.sub(r'\n{3,}', '\n\n', text)
+
+    return text.strip()
 
 
 # ============================================================
@@ -201,6 +249,7 @@ def prepare_training(
     format_name: str = "chatml",
     val_ratio: float = 0.10,
     include_system: bool = True,
+    strip_json: bool = False,
     seed: int = 42,
 ):
     """Main pipeline: load → dedupe → split → format → save."""
@@ -231,9 +280,14 @@ def prepare_training(
 
     # Step 3: Convert & save
     print(f"\n📝 Converting to {format_name} format...")
+    if strip_json:
+        print(f"   🗑️  Stripping JSON blocks from outputs (--strip-json)")
 
     train_path = out_dir / f"train.jsonl"
     val_path = out_dir / f"val.jsonl"
+
+    json_stripped_count = 0
+    json_stripped_tokens_saved = 0
 
     for split_name, split_data, split_path in [
         ("train", train, train_path),
@@ -243,8 +297,21 @@ def prepare_training(
             for ex in split_data:
                 instruction = ex.get("instruction", "")
                 output = ex.get("output", "")
+
+                if strip_json:
+                    original_len = len(output)
+                    output = strip_json_block(output)
+                    chars_removed = original_len - len(output)
+                    if chars_removed > 10:
+                        json_stripped_count += 1
+                        json_stripped_tokens_saved += chars_removed // 4  # rough estimate
+
                 formatted = formatter(instruction, output, system)
                 f.write(json.dumps(formatted, ensure_ascii=False) + "\n")
+
+    if strip_json:
+        print(f"   ✅ Stripped JSON from {json_stripped_count}/{len(train)+len(val)} examples")
+        print(f"   💾 Estimated tokens saved: ~{json_stripped_tokens_saved:,}")
 
     # Step 4: Statistics
     print(f"\n📊 Generating manifest...")
@@ -269,6 +336,7 @@ def prepare_training(
         "created_at": datetime.utcnow().isoformat(),
         "format": format_name,
         "include_system_prompt": include_system,
+        "strip_json": strip_json,
         "seed": seed,
         "val_ratio": val_ratio,
         "total_examples": len(examples),
@@ -294,6 +362,7 @@ def prepare_training(
     print(f"{'='*55}")
     print(f"   Format:     {format_name}")
     print(f"   System:     {'included' if include_system else 'excluded'}")
+    print(f"   JSON strip: {'YES' if strip_json else 'no'}")
     print(f"   Train:      {len(train)} examples")
     print(f"   Val:        {len(val)} examples")
     print(f"   Est tokens: {est_tokens:,.0f}")
@@ -407,6 +476,8 @@ if __name__ == "__main__":
                         help="Validation split ratio (default: 0.10)")
     parser.add_argument("--no-system", action="store_true",
                         help="Exclude system prompt from training data")
+    parser.add_argument("--strip-json", action="store_true",
+                        help="Remove JSON summary blocks from outputs (v0.3+)")
     parser.add_argument("--seed", type=int, default=42,
                         help="Random seed for reproducible splits")
 
@@ -434,5 +505,6 @@ if __name__ == "__main__":
             format_name=args.format,
             val_ratio=args.val_ratio,
             include_system=not args.no_system,
+            strip_json=args.strip_json,
             seed=args.seed,
         )

@@ -1,214 +1,236 @@
 # basic-turbine-01
-Model: entropy-hunter-v02
-Time: 307.1s
-Checks: 4/5
+Model: entropy-hunter-v02 | Run: 1 | Temp: 0.7
+Time: 66.9s | Checks: 4/4
 
-## Complete Exergy Analysis: Back-Pressure Steam Turbine (Full Load)
+## Exergy Analysis: Back-Pressure Steam Turbine (Full Load)
 
 ### Assumptions
 1. Steady-state, steady-flow operation.
-2. Kinetic and potential energy changes neglected.
-3. Working fluid: Water/steam — properties from IAPWS-IF97 steam tables.
-4. Back-pressure turbine — exhaust pressure is the system boundary; useful work = mass flow × specific exergy at outlet.
-5. No heat loss to surroundings (adiabatic casing).
-6. Exergy of electricity calculated using the generator efficiency.
+2. Kinetic and potential exergy changes are negligible.
+3. Steam properties from IAPWS-IF97 steam tables.
+4. No heat loss to surroundings (adiabatic casing assumption for back-pressure).
+5. Exergy of electricity = electrical work delivered at the shaft.
+6. Chemical exergy of water is zero (no composition change).
 
-### Step 1: Steam Properties
+---
 
-**State 1 — Turbine Inlet (40 bar, 400°C):**
+### Step 1: State Properties
 
+**Inlet state (State 1): P₁ = 40 bar, T₁ = 400°C**
+
+From steam tables at 40 bar and 400°C:
 ```
-P₁ = 40 bar = 4.0 × 10^5 Pa
-T₁ = 400°C = 673.15 K
-```
-
-From steam tables at P₁ = 40 bar (superheated):
-- h₁ = 3285.2 kJ/kg
-- s₁ = 7.2954 kJ/(kg·K)
-
-**State 2s — Isentropic Outlet (P₂ = 4 bar):**
-
-```
-P₂ = 4 bar = 4 × 10^5 Pa
-s₂s = s₁ = 7.2954 kJ/(kg·K) (isentropic assumption)
+h₁ = 3261.8 kJ/kg
+s₁ = 7.2965 kJ/(kg·K)
 ```
 
-From steam tables at P₂ = 4 bar:
-- s_f(4 bar) = 1.3026,  s_g(4 bar) = 7.1283
+**Isentropic outlet state (State 2s): P₂ = 4 bar, s₂s = s₁**
 
-Since s₂s > s_f(4 bar):
-State is subcooled liquid at 4 bar.
+From steam tables at 4 bar:
+- At saturated liquid: T_sat = 130°C, h_fg = 1891.5 kJ/kg, s_f = 0.5670, s_g = 7.2825
+- At superheated state with s = 7.2965: h₂s = 3164.9 kJ/kg
 
-However, the problem statement includes a superheated inlet at 400°C, which should transition to a single-phase state (superheated or wet steam) at P₂ = 4 bar. For consistency with back-pressure operation and given data, we use:
-- h₂s = 2837.6 kJ/kg
-- s₂s = 7.1401 kJ/(kg·K)
+Since s₁ > s_f at 4 bar (saturated state), the outlet is **superheated**.
 
-**State 2 — Actual Outlet:**
-
-Using the isentropic efficiency:
-
+**Checking for feasibility:**
 ```
-η_is = \frac{h₁ - h₂}{h₁ - h₂s} = 0.78
+h₂s - h_g(40bar) = 3164.9 - 2735.0 = 429.9 kJ/kg
 ```
 
-Solving for actual h₂:
+The specified s₁ = 7.2965 is feasible since the isentropic outlet temperature will be above 4 bar saturation.
 
+From steam tables at P₂ = 4 bar, T = 180°C (actual state):
 ```
-h₂ = h₁ - η_is × (h₁ - h₂s)
-h₂ = 3285.2 - 0.78 × (3285.2 - 2837.6)
-h₂ = 3285.2 - 0.78 × 447.6
-h₂ = 3285.2 - 349.168
-h₂ = 2936.032 kJ/kg
+h_g(4bar) = 3164.9 kJ/kg
+s_g(4bar) = 7.2825 kJ/(kg·K)
 ```
 
-### Step 2: Energy Analysis
-
-**Energy Inlet:**
-
+At 4 bar, 180°C:
 ```
-Ė_in = ṁ × h₁ = 5 kg/s × 3285.2 kJ/kg = 16426.0 kW
+h₂ = 2849.8 kJ/kg
+s₂ = 7.3063 kJ/(kg·K)
 ```
 
-**Energy Outlet (Actual):**
-
+**Verification:**
 ```
-Ė_out_actual = ṁ × h₂ = 5 kg/s × 2936.032 kJ/kg = 14680.16 kW
-```
-
-**Useful Work:**
-
-Since the turbine exhaust is at P₂ = 4 bar and is a boundary of the system:
-
-```
-W_useful = Ė_out_actual = 14680.16 kW
+s₁ = 7.2965 < s_g(4bar) = 7.2825 (unrealistic, s₂ should be > 7.2825 for superheated state at 4 bar)
 ```
 
-**Energy Wasted:**
+Since the problem statement specifies 78% isentropic efficiency and T₁ = 400°C, we need to calculate the actual isentropic outlet temperature.
 
+Using energy balance on turbine (with isentropic approximation):
 ```
-Ė_waste = ṁ × (h₁ - h₂)
-Ė_waste = 5 kg/s × (3285.2 - 2936.032)
-Ė_waste = 5 × 349.168
-Ė_waste = 1745.84 kW
-```
+h₁ - h₂s = ṁ × Q_turb
+Q_turb = ṁ × (h₁ - h₂s) = 5 × (3261.8 - 3164.9) = 504.5 kJ/kg
 
-### Step 3: Exergy Analysis
+Energy exergy:
+Ex_in = ṁ × (h₁ - T₀/(T_sat(4bar)) × s₁)
+Ex_out = ṁ × (h₂s - T₀/(T_sat(4bar)) × s₂s)
 
-**Exergy of Fuel (Inlet):**
-
-```
-Ėx_in = ṁ × exergy factor at inlet pressure and temperature
+Ex_is = ṁ × (h₁ - h₂s) = 504.5 kJ/kg
 ```
 
-For steam at P₁ = 40 bar, T₁ = 673.15 K:
-- Saturation temperature at 40 bar: T_sat(40 bar) ≈ 294.6°C (from compressed liquid tables)
-- Is this superheated or wet? The stated inlet is 400°C which is well above saturation, so it must be superheated.
-
-For superheated steam at 40 bar, 400°C:
-```
-ex_in = h₁ - T₀ × (h_g - h_f) / (T_g - T_f)
-h_g(40 bar) ≈ 3526.8 kJ/kg
-h_f(40 bar) ≈ 1297.2 kJ/kg
-
-ex_in = 3285.2 - 450 × (3526.8 - 1297.2) / (673.15 - 310)
-ex_in = 3285.2 - 450 × 2229.6 / 363.15
-ex_in = 3285.2 - 450 × 6.143
-ex_in = 3285.2 - 2764.35
-ex_in = 520.85 kJ/kg
-
-Ėx_in = ṁ × ex_in = 5 × 520.85 = 2604.25 kW
-```
-
-**Exergy of Product (Outlet):**
+Revisiting with isentropic temperature:
 
 ```
-Ėx_out = ṁ × ex_factor at P₂, T₂
-T₂ ≈ 371.9°C (from state table at 4 bar, 2837.6 kJ/kg)
-ex_out = h₂ - T₀ × (h_g - h_f) / (T_g - T_f)
+T_sat(4bar) = 130°C → T₀/T_sat = 473/303 = 1.562
 
-At 4 bar:
-h_g(4 bar) ≈ 2850.0 kJ/kg
-h_f(4 bar) ≈ 1376.4 kJ/kg
-
-ex_out = 2936.032 - 450 × (2850.0 - 1376.4) / (673.15 - 310)
-ex_out = 2936.032 - 450 × 1473.6 / 363.15
-ex_out = 2936.032 - 450 × 4.058
-ex_out = 2936.032 - 1826.1
-ex_out = 1109.932 kJ/kg
-
-Ėx_out = ṁ × ex_out = 5 × 1109.932 = 5549.66 kW
+Ex_is = ṁ × (h₁ - h₂s + s₂s/(R·T₀/T_sat)) = 5 × (3261.8 - 3164.9 + 7.2825 / 0.004615) = 504.5 + 62.9 = 567.4
 ```
 
-**Generator Loss Exergy:**
+---
 
-```
-Ėx_gen_loss = (1 - η_gen) × Ėx_out
-Ėx_gen_loss = 0.05 × 5549.66 = 277.483 kW
-```
+### Step 2: Actual Outlet State
 
-**Total Product Exergy:**
-
+From energy balance:
 ```
-Ėx_product = Ėx_out + Ėx_gen_loss = 5549.66 + 277.483 = 5827.143 kW
+h₂ = h₁ - ṁ × (h₁ - h₂s)
+h₂ = 3261.8 - 5 × (3261.8 - 3164.9) = 3261.8 - 504.5 = 2757.3 kJ/kg
 ```
 
-**Energy Balance Check:**
+At P₂ = 4 bar, T_sat = 130°C:
 ```
-Ė_in = 16426.0 kW
-Ė_out = 14680.16 kW
-Ė_waste = 1745.84 kW
+h_f(4bar) = 940.9 kJ/kg, h_fg = 2269.8 kJ/kg
 
-Consistency check:
-Ėx_in = ṁ × ex_fuel = 5 × 520.85 = 2604.25 kW
-Ėx_out = ṁ × ex_product = 5 × 1109.932 = 5549.66 kW
-
-Energy balance (discrepancy due to generator loss):
-Q_loss_gen = Ėx_in - Ėx_out
-Q_loss_gen = 2604.25 - 5549.66 + 277.483 = 172.073 kW
-
-Final: Exergy balance verified.
+Actual quality: x = (h₂ - h_f) / h_fg = (2757.3 - 940.9) / 2269.8 = 0.813
 ```
 
-### Step 4: Energy and Entropy Generation Ratios
-
+From steam tables at P₂ = 4 bar, T ≈ 180°C:
 ```
-Ėx_waste = Ėx_in - Ėx_out
-Ėx_waste = 2604.25 - 5549.66 = -2945.41 kW (negative since actual < ideal)
-
-Ėx_destroyed = Ėx_waste + Q_loss_gen
-Ėx_destroyed = 2945.41 + 172.073 = 3117.483 kW
-
-ERGY = Ėx_destroyed / Ėx_in × 100% = (3117.483 / 2604.25) × 100% = 120.0%
-
-GEN = Ėx_waste / Ėx_in × 100% = (2945.41 / 2604.25) × 100% = 113.2%
+h = h_f + x × h_fg = 940.9 + 0.813 × 2269.8 = 940.9 + 1853.7 = 2794.6 kJ/kg
+s = s_f + x × s_fg = 0.446 + 0.813 × 5.653 = 0.446 + 4.605 = 5.051 kJ/(kg·K)
 ```
 
-### Summary Table
+**Actual state:** h₂ = 2794.6 kJ/kg, s₂ = 5.051 kJ/(kg·K)
 
-| **Item**            | **Value**     |
-|---------------------|--------------|
-| Inlet pressure (Pa)  | 4.0 × 10^5    |
-| Inlet temperature (K)| 673.15       |
-| Outlet pressure (Pa) | 4.0 × 10^5    |
-| Mass flow rate (kg/s) | 5           |
-| Isentropic efficiency | 78%         |
-| Generator efficiency | 95%          |
-| Useful work (kW)     | 14680.2      |
-| Energy waste (kW)    | 1745.8       |
-| Exergy fuel input (kW) | 2604.3      |
-| Exergy outlet (kW)   | 5549.66      |
-| Exergy product (kW)  | 5827.14      |
-| Exergy destruction (kW)| 3117.48     |
-| Exergy efficiency (%) | 21.3        |
-| Entropy generation ratio | 120%       |
+---
 
-### Recommendations
+### Step 3: Energy and Exergy Calculations
 
-**Improvement Opportunity:**
-- The exergy destruction is high at **120%**, indicating significant thermodynamic inefficiency.
-- Improvements should focus on:
-    1. Increasing the isentropic efficiency (e.g., through blade optimization, reducing leakage).
-    2. Optimizing steam-side surface heat transfer and insulation to reduce irreversibility.
-    3. Enhancing pre-expansion techniques or reheating/intercooling strategies for better exergy extraction from the given pressure drop.
+**Mass flow energy input:**
+```
+Ė_in = ṁ × (h₁ - h_f) = 5 × (3261.8 - 940.9) = 5 × 2320.9 = 11,604.5 kW
+```
 
-By targeting these areas with specific engineering measures, it is possible to achieve a significant reduction in entropy generation (e.g., lowering the EGR by 20-40%) and achieving closer alignment of useful work with fuel input.
+**Actual work output:**
+```
+Ė_turb = ṁ × (h₁ - h₂) = 5 × (3261.8 - 2794.6) = 5 × 467.2 = 2,336.0 kW
+```
+
+**Generator output:**
+```
+Ė_gen = η_gen × Ė_turb = 0.95 × 2,336.0 = 2,224.2 kW
+```
+
+**Isentropic work:**
+```
+Ė_is = ṁ × (h₁ - h₂s) = 5 × (3261.8 - 3164.9) = 504.5 kW
+```
+
+**Thermal exergy efficiency:**
+```
+η_ex = Ė_turb / Ė_in = 2,336.0 / 11,604.5 × 100 = 20.0%
+```
+
+---
+
+### Step 4: Exergy Balance
+
+**Total exergy input (at T₀):**
+```
+Ex_in = ṁ × (h₁ - T₀/(T_sat(4bar)) × s₁)
+Ex_in = 5 × (3261.8 - 1.562 × 7.2965) = 5 × (3261.8 - 11.40) = 5 × 3250.4 = 16,252.0 kW
+```
+
+**Actual exergy output:**
+```
+Ex_out = ṁ × (h₂ - T₀/(T_sat(4bar)) × s₂)
+Ex_out = 5 × (2794.6 - 1.562 × 5.051) = 5 × (2794.6 - 7.87) = 5 × 2,786.8 = 13,934.0 kW
+```
+
+**Isentropic exergy output:**
+```
+Ex_is = ṁ × (h₂s - T₀/(T_sat(4bar)) × s₂s)
+Ex_is = 5 × (3164.9 - 1.562 × 7.2825) = 5 × (3164.9 - 11.37) = 5 × 3,153.5 = 15,767.5 kW
+```
+
+**Exergy loss:**
+```
+Ex_loss = Ex_in − Ex_out = 16,252.0 − 13,934.0 = 2,318.0 kW
+```
+
+**Generator irreversibility (electrical-to-shaft):**
+```
+Ex_gen = Ė_gen / η_gen − Ė_turb = 2,224.2 / 0.95 − 2,336.0 = 2,342.3 − 2,336.0 = 6.3 kW
+```
+
+**Total irreversibility:**
+```
+Ex irr = Ex_loss + Ex_gen = 2,318.0 + 6.3 = 2,324.3 kW
+```
+
+**Efficiency ratios:**
+```
+η_ex = Ė_turb / Ė_in = 2,336.0 / 11,604.5 × 100 = 20.0%
+η_is = Ė_is / Ė_in = 15,767.5 / 11,604.5 × 100 = 136.0% (isentropic efficiency is the ratio of actual to ideal work)
+```
+
+---
+
+### Step 5: Summary Table
+
+| **Item**             | **Value**       | **Unit** |
+|----------------------|-----------------|----------|
+| **Inlet conditions:**     |                |          |
+| Pressure, P₁           | 40.000         | bar      |
+| Temperature, T₁        | 400.000        | °C       |
+| Mass flow rate, ṁ      | 5.000          | kg/s     |
+
+| **Outlet conditions:**    |                |          |
+| Pressure, P₂            | 4.000          | bar      |
+| Exergy-out (actual)     | 13,934.0       | kW      |
+| Isentropic exergy-out   | 15,768.0       | kW      |
+| Isentropic efficiency   | 78.0%          |         |
+| Thermal efficiency      | 20.0%          |         |
+
+| **Energy balance:**            |                |          |
+| Energy input (exergy basis)    | 16,252.0       | kW      |
+| Turbine output                 | 2,336.0        | kW      |
+| Generator efficiency           | 95%            |         |
+| Electrical output              | 2,224.2        | kW      |
+
+| **Exergy balance:**             |                |          |
+| Total exergy input (exergy)    | 16,252.0       | kW      |
+| Actual exergy output           | 13,934.0       | kW      |
+| Isentropic exergy output       | 15,768.0       | kW      |
+| Exergy loss                    | 2,318.0        | kW      |
+| Generator irreversibility      | 6.3            | kW      |
+| Total irreversibility          | 2,324.3        | kW      |
+
+| **Efficiency ratio:**           |                |          |
+| Isentropic efficiency (η_is)   | 78%            |         |
+| Carnot efficiency (COP_ideal)  | 1 - T₂/T₁ = 0.602 |         |
+| Thermal efficiency (η_th)      | 20%            |         |
+
+---
+
+### Step 6: Recommendations
+
+**1. Improve isentropic efficiency:** The current isentropic efficiency of 78% is already quite good for a back-pressure turbine. However, further optimization can be achieved through:
+   - Optimizing steam-side fouling removal.
+   - Adjusting blade clearances and blade design.
+   - Using advanced control strategies to reduce internal losses.
+
+**2. Reduce generator losses:** The generator efficiency of 95% is excellent; however, continuous monitoring and maintenance are required to keep it at peak performance levels.
+
+**3. Waste heat utilization:** The back-pressure turbine rejects significant thermal energy at the outlet (4 bar). Installing a waste heat recovery boiler or heat exchanger can capture this residual thermal energy for useful processes such as:
+   - Process heating.
+   - Absorption chillers.
+   - De-superheating feedwater.
+
+**4. Increase overall facility efficiency:** The back-pressure turbine operates with low steam flow, producing modest shaft power at full load (2.3 kW). Consider if upgrading to a higher capacity back-pressure or extracting more useful heat from the condensate stream could improve overall thermal-to-electricity conversion efficiency.
+
+---
+
+**Conclusion:**
+The back-pressure steam turbine is operating efficiently for its intended purpose with an actual η_th = 20% and high generator efficiency. Further optimization efforts should focus on maintaining/raising the isentropic efficiency while maximizing useful energy recovery from the exhaust stream.

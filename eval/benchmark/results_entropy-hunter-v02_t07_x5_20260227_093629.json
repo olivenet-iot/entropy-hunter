@@ -1,0 +1,713 @@
+{
+  "model": "entropy-hunter-v02",
+  "timestamp": "20260227_093629",
+  "temperature": 0.7,
+  "runs_per_test": 5,
+  "num_tests": 7,
+  "num_inferences": 35,
+  "excluded_checks": [
+    "json_block"
+  ],
+  "results": [
+    {
+      "test_id": "egm-compressor-01",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "medium",
+      "run_number": 1,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": false,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 49.5,
+      "response_length": 5186
+    },
+    {
+      "test_id": "egm-compressor-01",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "medium",
+      "run_number": 2,
+      "passed_checks": 3,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": false,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 42.3,
+      "response_length": 4707
+    },
+    {
+      "test_id": "egm-compressor-01",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "medium",
+      "run_number": 3,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 62.0,
+      "response_length": 6473
+    },
+    {
+      "test_id": "egm-compressor-01",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "medium",
+      "run_number": 4,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 34.4,
+      "response_length": 3972
+    },
+    {
+      "test_id": "egm-compressor-01",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "medium",
+      "run_number": 5,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 47.1,
+      "response_length": 5245
+    },
+    {
+      "test_id": "egm-compressor-02",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "hard",
+      "run_number": 1,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 68.8,
+      "response_length": 7138
+    },
+    {
+      "test_id": "egm-compressor-02",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "hard",
+      "run_number": 2,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": false,
+        "mechanism_values": false
+      },
+      "response_time_s": 36.1,
+      "response_length": 4517
+    },
+    {
+      "test_id": "egm-compressor-02",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "hard",
+      "run_number": 3,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": false,
+        "mechanism_values": false
+      },
+      "response_time_s": 67.1,
+      "response_length": 6366
+    },
+    {
+      "test_id": "egm-compressor-02",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "hard",
+      "run_number": 4,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 50.6,
+      "response_length": 5695
+    },
+    {
+      "test_id": "egm-compressor-02",
+      "category": "entropy_generation",
+      "equipment": "compressor",
+      "difficulty": "hard",
+      "run_number": 5,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 81.6,
+      "response_length": 8370
+    },
+    {
+      "test_id": "egm-boiler-01",
+      "category": "entropy_generation",
+      "equipment": "boiler",
+      "difficulty": "medium",
+      "run_number": 1,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 43.6,
+      "response_length": 4478
+    },
+    {
+      "test_id": "egm-boiler-01",
+      "category": "entropy_generation",
+      "equipment": "boiler",
+      "difficulty": "medium",
+      "run_number": 2,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 57.0,
+      "response_length": 5708
+    },
+    {
+      "test_id": "egm-boiler-01",
+      "category": "entropy_generation",
+      "equipment": "boiler",
+      "difficulty": "medium",
+      "run_number": 3,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 46.3,
+      "response_length": 5273
+    },
+    {
+      "test_id": "egm-boiler-01",
+      "category": "entropy_generation",
+      "equipment": "boiler",
+      "difficulty": "medium",
+      "run_number": 4,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 49.8,
+      "response_length": 5068
+    },
+    {
+      "test_id": "egm-boiler-01",
+      "category": "entropy_generation",
+      "equipment": "boiler",
+      "difficulty": "medium",
+      "run_number": 5,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 48.9,
+      "response_length": 5149
+    },
+    {
+      "test_id": "egm-hx-01",
+      "category": "entropy_generation",
+      "equipment": "heat_exchanger",
+      "difficulty": "medium",
+      "run_number": 1,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 42.2,
+      "response_length": 4789
+    },
+    {
+      "test_id": "egm-hx-01",
+      "category": "entropy_generation",
+      "equipment": "heat_exchanger",
+      "difficulty": "medium",
+      "run_number": 2,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 69.1,
+      "response_length": 7942
+    },
+    {
+      "test_id": "egm-hx-01",
+      "category": "entropy_generation",
+      "equipment": "heat_exchanger",
+      "difficulty": "medium",
+      "run_number": 3,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 89.3,
+      "response_length": 8131
+    },
+    {
+      "test_id": "egm-hx-01",
+      "category": "entropy_generation",
+      "equipment": "heat_exchanger",
+      "difficulty": "medium",
+      "run_number": 4,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 53.5,
+      "response_length": 5809
+    },
+    {
+      "test_id": "egm-hx-01",
+      "category": "entropy_generation",
+      "equipment": "heat_exchanger",
+      "difficulty": "medium",
+      "run_number": 5,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 57.5,
+      "response_length": 6657
+    },
+    {
+      "test_id": "egm-pump-01",
+      "category": "entropy_generation",
+      "equipment": "pump",
+      "difficulty": "easy",
+      "run_number": 1,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 43.4,
+      "response_length": 5047
+    },
+    {
+      "test_id": "egm-pump-01",
+      "category": "entropy_generation",
+      "equipment": "pump",
+      "difficulty": "easy",
+      "run_number": 2,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 38.4,
+      "response_length": 4469
+    },
+    {
+      "test_id": "egm-pump-01",
+      "category": "entropy_generation",
+      "equipment": "pump",
+      "difficulty": "easy",
+      "run_number": 3,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": false,
+        "mechanism_values": false
+      },
+      "response_time_s": 48.7,
+      "response_length": 5515
+    },
+    {
+      "test_id": "egm-pump-01",
+      "category": "entropy_generation",
+      "equipment": "pump",
+      "difficulty": "easy",
+      "run_number": 4,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 45.8,
+      "response_length": 5069
+    },
+    {
+      "test_id": "egm-pump-01",
+      "category": "entropy_generation",
+      "equipment": "pump",
+      "difficulty": "easy",
+      "run_number": 5,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 42.7,
+      "response_length": 5145
+    },
+    {
+      "test_id": "egm-turbine-01",
+      "category": "entropy_generation",
+      "equipment": "steam_turbine",
+      "difficulty": "hard",
+      "run_number": 1,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 51.4,
+      "response_length": 5369
+    },
+    {
+      "test_id": "egm-turbine-01",
+      "category": "entropy_generation",
+      "equipment": "steam_turbine",
+      "difficulty": "hard",
+      "run_number": 2,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": false,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 73.0,
+      "response_length": 6462
+    },
+    {
+      "test_id": "egm-turbine-01",
+      "category": "entropy_generation",
+      "equipment": "steam_turbine",
+      "difficulty": "hard",
+      "run_number": 3,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": false,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 46.0,
+      "response_length": 5099
+    },
+    {
+      "test_id": "egm-turbine-01",
+      "category": "entropy_generation",
+      "equipment": "steam_turbine",
+      "difficulty": "hard",
+      "run_number": 4,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 46.2,
+      "response_length": 4344
+    },
+    {
+      "test_id": "egm-turbine-01",
+      "category": "entropy_generation",
+      "equipment": "steam_turbine",
+      "difficulty": "hard",
+      "run_number": 5,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 81.0,
+      "response_length": 7580
+    },
+    {
+      "test_id": "egm-chiller-01",
+      "category": "entropy_generation",
+      "equipment": "chiller",
+      "difficulty": "medium",
+      "run_number": 1,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 37.9,
+      "response_length": 4859
+    },
+    {
+      "test_id": "egm-chiller-01",
+      "category": "entropy_generation",
+      "equipment": "chiller",
+      "difficulty": "medium",
+      "run_number": 2,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 52.1,
+      "response_length": 5861
+    },
+    {
+      "test_id": "egm-chiller-01",
+      "category": "entropy_generation",
+      "equipment": "chiller",
+      "difficulty": "medium",
+      "run_number": 3,
+      "passed_checks": 4,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": false,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 67.1,
+      "response_length": 7315
+    },
+    {
+      "test_id": "egm-chiller-01",
+      "category": "entropy_generation",
+      "equipment": "chiller",
+      "difficulty": "medium",
+      "run_number": 4,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 59.2,
+      "response_length": 6111
+    },
+    {
+      "test_id": "egm-chiller-01",
+      "category": "entropy_generation",
+      "equipment": "chiller",
+      "difficulty": "medium",
+      "run_number": 5,
+      "passed_checks": 5,
+      "total_checks": 6,
+      "checks": {
+        "dead_state": true,
+        "json_block": false,
+        "entropy_gen": true,
+        "bejan_number": true,
+        "grade": true,
+        "mechanism_decomp": true,
+        "mechanism_values": false
+      },
+      "response_time_s": 67.7,
+      "response_length": 7180
+    }
+  ]
+}

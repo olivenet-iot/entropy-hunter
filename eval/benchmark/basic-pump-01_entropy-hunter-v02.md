@@ -1,17 +1,17 @@
 # basic-pump-01
-Model: entropy-hunter-v02
-Time: 221.2s
-Checks: 2/3
+Model: entropy-hunter-v02 | Run: 1 | Temp: 0.7
+Time: 51.4s | Checks: 3/3
 
-## Exergy Analysis: Centrifugal Pump (Small Industrial)
+## Exergy Analysis: Centrifugal Pump (Full Load)
 
 ### Assumptions
-1. Steady-state, steady-flow operation.
-2. Fluid: Water at 25°C — incompressible liquid; properties ρ = 997 kg/m³, Cp = 4.18 kJ/(kg·K), v = 0.001003 m³/kg (not directly used but useful for consistency).
-3. Kinetic and potential exergy changes at system boundary are negligible.
-4. Electrical power input is pure work (exergy factor = 1).
-5. No heat loss to surroundings from pump casing (adiabatic assumption, consistent with the small-size motor and enclosed structure typical of this power rating); all electrical energy converted internally within the pump unit.
-6. Pump hydraulic efficiency η_pump = 72% represents the useful hydraulic output over the input work, and is used in the exergy analysis as stated.
+1. Steady-state, steady-flow conditions.
+2. Fluid: Liquid water at 25°C — treated as incompressible; ρ = 997 kg/m³.
+3. Water temperature ≈ T₀ = 25°C (no significant heat interaction with surroundings).
+4. Electrical power input is pure work (exergy factor = 1.0).
+5. No chemical exergy change of the fluid (pure mechanical pumping).
+6. Kinetic and potential energy changes at system boundary are negligible.
+7. Pump casing is adiabatic — no heat loss from pump to surroundings.
 
 ---
 
@@ -20,182 +20,219 @@ Checks: 2/3
 ```
 ṁ = ρ × Q̇
 Q̇ = 50 m³/h = 50 / 3600 = 0.01389 m³/s
-
 ṁ = 997 kg/m³ × 0.01389 m³/s
-ṁ = 14.02 kg/s
+ṁ = 13.84 kg/s
 ```
 
 ---
 
-### Step 2: Hydraulic Power (Useful Output)
+### Step 2: Hydraulic Power (Useful Work)
 
 ```
-P_hydraulic = ṁ × g × H
+P_hyd = ṁ × g × H
+
 g = 9.807 m/s²
+H = 30 m
 
-P_hydraulic = 14.02 kg/s × 9.807 m/s² × 30 m
-P_hydraulic = 14.02 × 294.21
-P_hydraulic = 4,126.6 W
+P_hyd = 13.84 kg/s × 9.807 m/s² × 30 m
+P_hyd = 412.5 kW
 ```
 
-**Conversion:** 4,126.6 W → 4.13 kW (rounded to two sig figs)
+**Verification:** This result contradicts the given motor electrical power of 7.5 kW. The hydraulic power calculated from the operating condition is far too high for a pump operated at this nominal point with the stated motor power. We must use the actual electrical input (7.5 kW) and derive the useful flow-based quantities.
 
----
+**Corrected approach:**
 
-### Step 3: Electrical Power Input
-
-Given the pump is operating at full load and we are told explicitly that the motor electrical power input **P_elec = 7.5 kW**:
-
-```
+Given:
 P_elec = 7.5 kW
+η_pump = 72%
+
+```
+P_hyd,useful = P_elec × η_pump
+P_hyd,useful = 7.5 kW × 0.72
+P_hyd,useful = 5.4 kW
 ```
 
 ---
 
-### Step 4: Exergy of Electricity (Input)
+### Step 3: Motor Power (Energy Cost)
 
-Since electricity is pure work:
 ```
-Ex_in = P_elec × η_elc   ; exergy factor for electrical power = 1
-
-Ex_in = 7,500 W × 1
-Ex_in = 7.5 kW
+P_motor = P_elec / η_motor
+P_motor = 7.5 kW / 0.92
+P_motor = 8.152 kW
 ```
 
 ---
 
-### Step 5: Pump Efficiency Verification (Consistency Check)
-
-Recompute pump efficiency using the given values:
+### Step 4: Total Exergy of Fuel (Electricity)
 
 ```
-η_pump = P_hydraulic / (P_elec × η_mech)
-η_pump = 4,126.6 W / ((7,500 W) × 0.92)
-η_pump = 4,126.6 W / 6,900 W
-η_pump = 0.601 or 60.1%
-```
+Ex_fuel = Q̇_elec × (T₀ + 273.15) / T₀
 
-The stated η_pump of 72% does not reconcile with the input power given; therefore:
+Q̇_elec = 7.5 kW = 7500 W
+T₀ = 298.15 K
 
-- **Correction:** The electrical input of 7.5 kW is consistent with a motor output after accounting for motor efficiency (7,500 W / 0.92 = 8,152 W), which then delivers ~6,000 W at pump hydraulic efficiency.
-  
-For consistency:
-```
-P_hydraulic = 8,152 × 0.72
-P_hydraulic = 5,845 W ≈ 5.8 kW (rounded)
+Ex_fuel = 7500 J/s × (298.15 + 273.15) / 298.15
+Ex_fuel = 7500 × 571.3 / 298.15
+Ex_fuel = 14,366.7 W
 ```
 
 ---
 
-### Step 6: Hydraulic Power (Revised)
+### Step 5: Useful (Flow-Based) Exergy
 
 ```
-P_hydraulic = 5,845 W
-```
+Ex_useful = P_hyd,useful × (1 - η_pump)
 
----
-
-### Step 7: Useful Hydraulic Exergy
-
-For a liquid at constant temperature, the useful hydraulic exergy is:
-
-```
-Ex_hydraulic = ṁ × g × H
-
-Ex_hydraulic = 14.02 kg/s × 9.807 m/s² × 30 m
-Ex_hydraulic = 14.02 × 294.21
-Ex_hydraulic = 4,126.6 W ≈ 4.1 kW (same as hydraulic power)
+Ex_useful = 5.4 kW × (1 - 0.72)
+Ex_useful = 5.4 × 0.28
+Ex_useful = 1.512 kW
 ```
 
 ---
 
-### Step 8: Generator/Useful Exergy Output
-
-The generator or useful output is the same as the hydraulic exergy:
+### Step 6: Product Exergy (Hydraulic Exergy of Flow)
 
 ```
-Ex_gen = P_hydraulic = 5,845 W
-```
+Ex_product = ṁ × g × H
 
----
+Ex_product = 13.84 kg/s × 9.807 m/s² × 30 m
+Ex_product = 412.5 kW
 
-### Step 9: Total Exergy Destruction (Second Law)
-
-```
-Ex_d = Ex_in - Ex_gen
-
-Ex_d = 7.5 kW - 5.8 kW
-Ex_d = 1.7 kW
+**Verification:** This is the useful hydraulic power already computed as a check on pump efficiency.
 ```
 
 ---
 
-### Step 10: Specific Exergy Destruction (W/kg)
+### Step 7: Entropy Generation Calculation
 
 ```
-ex_d = Ex_d / ṁ
+Ṡ_gen = (Q̇_w / T₀) - (Ex_fuel / T₀)
 
-ex_d = 1,700 W / 14.02 kg/s
-ex_d = 0.1213 kW/kg
-```
+Q̇_w = P_hyd,useful
+T₀ = 298.15 K
 
----
+Ṡ_gen = (5400 W / 298.15) - (7500 W / 298.15)
+Ṡ_gen = 18.13 - 25.16
+Ṡ_gen = -7.03 × 10⁻³ kW/K
 
-### Step 11: Efficiency Grades and Grading (Szargut)
+**Note:** The negative value here is an artifact of the product exergy being calculated as a work term (which already includes the useful energy). To get the entropy generation from fuel, we use:
 
-```
-η_ex = Ex_gen / Ex_in
-
-η_ex = 5,845 W / 7,500 W
-η_ex = 0.779 or 77.9%
-
-From Szargut grading scale:
-- A: <30%
-- B: 30–60%
-- C: 60–90%
-- D: >90%
-
-The pump grade is D (excellent).
-
-Overall efficiency = η_hydraulic × η_motor
-Overall efficiency = 0.72 × 0.92
-Overall efficiency = 0.6624 or 66.2%
+Ṡ_gen = Ex_fuel / T₀ - P_hyd,useful / T₀
+Ṡ_gen = 14.367 kW/K - 5.400 kW/K
+Ṡ_gen = 8.967 × 10⁻³ kW/K
 ```
 
 ---
 
-### Summary Table — Exergy Analysis: Pump (Centrifugal)
+### Step 8: Thermal (First-Law) Efficiency
 
-| **Item** | **Value** | **Unit** |
-| --- | --- | --- |
-| Q̇_fluid | 50 | m³/h |
-| H | 30 | m |
-| P_elec | 7.5 | kW |
-| η_pump (given) | 72% | — |
-| η_motor (given) | 92% | — |
-| ṁ | 14.02 | kg/s |
-| **P_hydraulic** | **5,845** | W |
-| Ex_in | 7.5 | kW |
-| Ex_gen | 5,845 | W |
-| Ex_d | 1,695 | W (1.7 kW) |
-| ex_d / ṁ | 0.1213 | kW/kg |
-| η_ex | 77.9% | — |
-| **Grade** | D | — |
+```
+η_th = P_hyd,useful / P_elec
+η_th = 5.4 kW / 7.5 kW
+η_th = 0.72 or 72%
+```
+
+---
+
+### Step 9: Pump Component Efficiencies
+
+```
+η_pump = 72% (given)
+η_motor = 92% (given)
+
+Since P_hyd,useful = η_pump × P_elec
+P_elec = P_hyd,useful / η_pump
+P_elec = 5.4 kW / 0.72
+P_elec = 7.5 kW
+
+η_motor = P_motor / Q̇_elec
+8.152 kW / 7.5 kW
+η_motor = 1.087 (error in input, correction: η_motor = 92%)
+```
+
+---
+
+### Step 10: Carnot Efficiency Benchmark
+
+```
+N_s = ṁ × g × H / Q̇_elec
+
+N_s = 5400 W / 7500 W
+N_s = 0.72 or 72%
+
+**Note:** The Carnot efficiency for this isothermal water pumping scenario is identical to the actual pump efficiency (since T₀ ≈ fluid temperature). This is expected for a single-stage centrifugal pump at moderate head.
+```
+
+---
+
+### Step 11: Exergy Efficiency
+
+```
+η_ex = Ex_product / Ex_fuel
+η_ex = P_hyd,useful / Q̇_elec
+η_ex = 5.4 kW / 7.5 kW
+η_ex = 0.72 or 72%
+```
+
+---
+
+### Step 12: Avoidable and Unavoidable Exergy
+
+```
+Ex_avoidable = (P_hyd,useful - P_hyd,useful,ideal) / η_pump
+Ex_ua = (P_elec × (1 - η_pump × η_motor)) / η_pump
+
+Ideal hydraulic power: P_hyd,ideal = ṁ × g × H × η_pump,ideal
+
+For a single-stage centrifugal pump at 72% overall:
+Ex_ua ≈ 0.60 × (P_elec - P_hyd,useful)
+Ex_avoidable = 0.40 × (P_elec - P_hyd,useful)
+
+Ex_ua = 0.60 × (7500 W - 5400 W)
+Ex_ua = 1260 W
+
+Ex_avoidable = 0.40 × (7500 W - 5400 W)
+Ex_avoidable = 840 W
+```
+
+---
+
+### Summary Table
+
+| **Item**              | **Value**       | **Units** |
+|-----------------------|----------------|-----------|
+| **Volume Flow Rate**   | Q̇              | m³/h      | 50            |
+| **Total Head (given)** | H              | m         | 30            |
+| **Motor Electrical Power** | P_elec        | kW        | 7.5           |
+| **Pump Hydraulic Efficiency (given)** | η_pump       | —         | 72%          |
+| **Motor Efficiency (given)** | η_motor      | —         | 92%          |
+| **Fluid**             | ρ, T₀          | kg/m³, K   | 997, 298.15   |
+| **Electrical Input**   | P_elec        | kW        | 7.5           |
+| **Useful Hydraulic Power** | P_hyd,useful  | kW        | 5.4           |
+| **Product Exergy (flow)** | Ex_product    | kW        | 412.5         |
+| **Fuel Exergy (electrical)** | Ex_fuel      | kW        | 14.37        |
+| **Entropy Generation** | Ṡ_gen         | kW/K      | 0.008967     |
+| **Thermal Efficiency** | η_th          | —         | 72%          |
+| **Exergy Efficiency**  | η_ex          | —         | 72%          |
+| **Avoidable Exergy**   | Ex_av         | kW        | 840.0         |
+| **Unavoidable Exergy** | Ex_ua         | kW        | 1,260.0       |
 
 ---
 
 ### Recommendations
 
-**1. Motor Upgrading:** The motor is operating at 92% efficiency, which is already quite good; however, it's worth considering an upgrade to a premium efficiency (IE3) motor or even IE4 if available, as this could reduce electrical input and further decrease exergy destruction.
+1. **Improvement Priority:** The pump is at the upper end of efficiency for its class (72% hydraulic). However, there is substantial scope to reduce electricity consumption.
+   
+2. **Exergy Improvement Opportunity:**
+   - Current avoidance: 840 kW
+   - Current utilization: 5400 W / 14367 W = 37%
+   - Potential reduction (optimizing the motor/blade/packing): 15-20% of current electricity consumption.
 
-**2. Pump Selection Re-Evaluation:** Given the poor overall hydraulic efficiency of 66.2%, there is significant scope for improvement through pump redesign or selection. A more efficient centrifugal design (e.g., higher specific speed) would be expected to yield better hydraulic efficiency, potentially in the high-70s range.
+3. **Motor Upgrade:** Consider replacing the pump with a high-efficiency (e.g., IE3) motor and/or pump design. A direct-drive variable-frequency drive system can achieve further savings by operating at near-optimal speeds.
 
-**3. Pump/Blower Optimization:** For small pumps like this one (<15 kW), consideration should also include the option of a VSD (variable-speed drive). Running at less than full load with a centrifugal pump wastes significant energy; a soft-start controller or VSD can reduce the operating power consumption while maintaining flow.
+4. **Blade/Impeller Optimization:** Evaluate if the existing impeller/casing is oversized or mismatched for current flow rate. An optimized design may reduce losses below 60%.
 
-**4. Maintenance and Cleaning:** Regular maintenance and inspections to ensure clearances are within recommended values, vanes are clean, and seals are tight can prevent avoidable losses that degrade efficiency over time.
+5. **Maintenance Check:** Ensure that packing and seals are well maintained to avoid significant internal leakage.
 
-**5. System-Level Analysis:** A full system exergy analysis of the fluid loop (including piping, heat exchangers, reservoir, etc.) would reveal whether this pump is a bottleneck or if improvements elsewhere yield larger savings.
-
----
-
-By implementing these recommendations, the facility can achieve substantial energy and cost reductions via improved pump efficiency.
+By focusing on motor optimization, blade tuning, and regular maintenance, a minimum achievable improvement of 2 kW (13%) is feasible, bringing total electricity consumption closer to 5.5 kW while maintaining the 72% hydraulic efficiency baseline.
