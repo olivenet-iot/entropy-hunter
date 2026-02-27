@@ -1,0 +1,55 @@
+{
+  "created_at": "2026-02-27T15:06:36.908119",
+  "format": "chatml",
+  "include_system_prompt": true,
+  "strip_json": true,
+  "seed": 42,
+  "val_ratio": 0.1,
+  "total_examples": 884,
+  "train_examples": 798,
+  "val_examples": 86,
+  "estimated_tokens": 4928898,
+  "teacher_models": {
+    "claude-opus-4-6": 884
+  },
+  "train_by_analysis": {
+    "entropy_generation": 225,
+    "exergoeconomic": 217,
+    "basic_exergy": 190,
+    "whatif_comparison": 67,
+    "avoidable_unavoidable": 58,
+    "hotspot_detection": 41
+  },
+  "val_by_analysis": {
+    "entropy_generation": 24,
+    "exergoeconomic": 24,
+    "basic_exergy": 21,
+    "whatif_comparison": 7,
+    "avoidable_unavoidable": 6,
+    "hotspot_detection": 4
+  },
+  "train_by_equipment": {
+    "compressor": 114,
+    "heat_exchanger": 112,
+    "steam_turbine": 110,
+    "boiler": 110,
+    "chiller": 109,
+    "dryer": 106,
+    "pump": 96,
+    "factory": 41
+  },
+  "val_by_equipment": {
+    "dryer": 16,
+    "chiller": 14,
+    "heat_exchanger": 12,
+    "pump": 11,
+    "boiler": 10,
+    "compressor": 10,
+    "steam_turbine": 9,
+    "factory": 4
+  },
+  "source_files": [
+    "data/v0.2/batch_results_20260226_090708.jsonl"
+  ],
+  "system_prompt_preview": "You are EntropyHunter, an expert thermodynamic analysis assistant specializing in exergy (second-law) analysis of industrial equipment.\n\nYour expertise covers:\n- Exergy analysis (basic, advanced, exer..."
+}
