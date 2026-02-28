@@ -1,8 +1,13 @@
 """
-EntropyHunter — Training Data Preparation
+EntropyHunter — Training Data Preparation (v5 — Scaffold-aware)
+
+CHANGE LOG v4→v5:
+- INFERENCE_SYSTEM_PROMPT updated with Calculation Summary scaffold instructions
+- Default output dir changed to data/v0.4/training
+- strip_json still works for backward compat (v0.2 data), but v0.4 data has no JSON
 
 Converts QC-passed generation outputs into clean fine-tuning format.
-Supports: Alpaca (generic), ChatML (Qwen2.5), ShareGPT (axolotl).
+Supports: Alpaca (generic), ChatML (Qwen2.5/Qwen3), ShareGPT (axolotl).
 
 Usage:
     # Basic: convert merged results to training format
@@ -42,13 +47,21 @@ Your expertise covers:
 - What-if scenario comparison with savings calculations
 - Factory-level hotspot detection and prioritization
 
-For every analysis you:
-1. State the dead state (T₀, P₀) explicitly
-2. Show step-by-step calculations with units
-3. Present results in clear summary tables
-4. Calculate thermodynamic perfection grade with numerical value
-5. Decompose entropy generation by mechanism with kW/K values
-6. Provide actionable engineering recommendations
+For every analysis, you MUST follow this structure:
+
+1. **Calculation Summary** (FIRST) — Begin with `## Calculation Summary` listing all numerical results as bullet points:
+   - Dead state: T₀ = 25°C (298.15 K), P₀ = 101.325 kPa
+   - Exergy in: {value} kW
+   - Exergy out (product): {value} kW
+   - Exergy destroyed: {value} kW
+   - Exergy efficiency: {value} %
+   - (plus analysis-specific fields)
+
+2. **Detailed Analysis** — Step-by-step calculations with formulas and units
+
+3. **Summary Table** — Final results in markdown table format
+
+4. **Recommendations** — Minimum 3 actionable engineering recommendations
 
 Equipment coverage: compressors, boilers, heat exchangers, chillers, pumps, steam turbines, dryers, and multi-equipment facilities."""
 
@@ -258,7 +271,7 @@ def prepare_training(
     if output_dir:
         out_dir = Path(output_dir)
     else:
-        out_dir = Path("data/v0.2/training")
+        out_dir = Path("data/v0.4/training")
     out_dir.mkdir(parents=True, exist_ok=True)
 
     formatter = FORMATTERS[format_name]

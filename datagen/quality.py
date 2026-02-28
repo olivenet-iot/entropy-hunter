@@ -1,5 +1,11 @@
 """
-EntropyHunter — Thermodynamic Quality Control
+EntropyHunter — Thermodynamic Quality Control (v5 — Scaffold Parser)
+
+CHANGE LOG v4→v5:
+- _extract_from_scaffold() ADDED as primary extraction method
+- Extraction priority: Scaffold → JSON (backward compat) → Table regex → Inline regex
+- scaffold_present check added for training data QC
+- All existing regex patterns PRESERVED for backward compatibility (v0.2 benchmark)
 
 Every generated example must pass these checks before
 being included in the training dataset.
@@ -31,6 +37,11 @@ def check_example(example: dict) -> QualityResult:
     errors = []
     warnings = []
     output_text = example.get("output", "")
+
+    # 0. Scaffold presence check (for v0.4 training data QC)
+    checks["scaffold_present"] = "## Calculation Summary" in output_text
+    if not checks["scaffold_present"]:
+        warnings.append("No ## Calculation Summary scaffold found in output")
 
     # 1. Energy balance check (Ex_in = Ex_out + Ex_waste + Ex_destroyed)
     values = extract_numeric_values(output_text)
@@ -119,7 +130,9 @@ def check_example(example: dict) -> QualityResult:
         checks["av_un_split"] = None
 
     # Determine overall pass/fail
-    verified_checks = {k: v for k, v in checks.items() if v is not None}
+    # scaffold_present is a warning, not a hard fail (backward compat with v0.2 data)
+    verified_checks = {k: v for k, v in checks.items()
+                       if v is not None and k != "scaffold_present"}
     passed = all(verified_checks.values()) if verified_checks else False
 
     return QualityResult(
@@ -130,34 +143,163 @@ def check_example(example: dict) -> QualityResult:
     )
 
 
+# ============================================================
+# VALUE EXTRACTION — 4-phase priority chain
+# ============================================================
+
 def extract_numeric_values(text: str) -> dict[str, Optional[float]]:
     """
     Extract key numeric values from generated analysis text.
     
     STRATEGY (priority order):
-    1. JSON summary block (machine-readable, most reliable)
-    2. Markdown table extraction with unit validation
-    3. Inline pattern extraction with physical validity filtering
+    1. Calculation Summary scaffold (v0.4 primary format)
+    2. JSON summary block (v0.2 backward compatibility)
+    3. Markdown table extraction with unit validation
+    4. Inline pattern extraction with physical validity filtering
     
-    Falls back gracefully: if JSON is missing/truncated, regex takes over.
+    Falls back gracefully through each phase.
     """
-    # === PHASE 0: Try JSON summary block first ===
-    values = _extract_from_json_block(text)
-    if values:
-        # JSON found — but still check if any keys are missing (null in JSON)
-        # Don't bother with regex for null values, they genuinely weren't calculated
+    # === PHASE 0: Try Calculation Summary scaffold first (v0.4) ===
+    values = _extract_from_scaffold(text)
+    if values and len(values) >= 3:
         return values
 
-    # === PHASE 1+2: Regex fallback (for pre-JSON examples or truncated responses) ===
+    # === PHASE 1: Try JSON summary block (v0.2 backward compat) ===
+    values = _extract_from_json_block(text)
+    if values and len(values) >= 3:
+        return values
+
+    # === PHASE 2+3: Regex fallback ===
     return _extract_from_regex(text)
 
 
+# ============================================================
+# PHASE 0: SCAFFOLD PARSER (v0.4 — primary)
+# ============================================================
+
+# Key normalization: scaffold label → internal key
+SCAFFOLD_KEY_MAP = {
+    # Basic exergy
+    "exergy in": "exergy_in",
+    "exergy out": "exergy_out",
+    "exergy out (product)": "exergy_out",
+    "exergy destroyed": "exergy_destroyed",
+    "exergy destroyed (total)": "exergy_destroyed",
+    "exergy efficiency": "efficiency",
+    "exergy efficiency (actual)": "efficiency",
+    "entropy generation": "entropy_generation",
+    "entropy generation (sgen)": "entropy_generation",
+    "total entropy generation": "entropy_generation",
+    "total entropy generation (sgen)": "entropy_generation",
+    "bejan number": "bejan_number",
+    "bejan number (ns)": "bejan_number",
+
+    # Exergoeconomic
+    "crf": "crf",
+    "investment cost rate (zdot)": "z_dot",
+    "fuel cost rate (cf)": "c_fuel",
+    "destruction cost rate (cdotd)": "c_dot_d",
+    "exergoeconomic factor (f)": "f_factor",
+    "exergoeconomic factor": "f_factor",
+    "total cost rate": "total_cost_rate",
+
+    # EGM mechanism values
+    "heat transfer (sgen,ht)": "sgen_ht",
+    "pressure drop (sgen,dp)": "sgen_dp",
+    "mixing/chemical (sgen,mix)": "sgen_mix",
+
+    # AV/UN
+    "unavoidable exergy destruction": "unavoidable",
+    "avoidable exergy destruction": "avoidable",
+    "avoidable ratio": "avoidable_ratio",
+
+    # What-if
+    "annual energy savings": "annual_energy_savings",
+    "annual cost savings": "annual_cost_savings",
+    "delta exergy destroyed": "delta_exd",
+
+    # Waste exergy (for energy balance)
+    "exergy waste": "exergy_waste",
+    "waste exergy": "exergy_waste",
+}
+
+
+def _extract_from_scaffold(text: str) -> dict[str, Optional[float]]:
+    """
+    Extract values from ## Calculation Summary scaffold sections.
+    
+    Parses lines matching: `- Label: NUMBER UNIT`
+    Handles multiple scaffold sections (whatif has Baseline + Scenario + Comparison).
+    For whatif, returns the BASELINE values for core fields and COMPARISON values for deltas.
+    
+    Returns empty dict if no scaffold found.
+    """
+    # Find all Calculation Summary sections
+    # Match: ## Calculation Summary, ## Calculation Summary — Baseline, etc.
+    sections = re.findall(
+        r"## Calculation Summary[^\n]*\n(.*?)(?=\n## (?!Calculation)|$)",
+        text, re.DOTALL
+    )
+
+    if not sections:
+        return {}
+
+    values = {}
+
+    # Regex for scaffold lines: - Label: NUMBER UNIT
+    # Also handles: - Label: T₀ = 25°C (298.15 K)  → won't match as simple number
+    # And: - Label: VALUE UNIT (more text)
+    line_pattern = re.compile(
+        r"^\s*[-*]\s*(.+?):\s+"          # Label (capture group 1)
+        r"([\d]+[.,]?[\d]*)"             # Number (capture group 2)
+        r"\s*(%|kW|kJ|K|°C|kW/K|EUR/h|EUR/kWh|EUR|h/yr|pp|kWh/yr|EUR/yr)?",  # Unit (opt, group 3)
+        re.MULTILINE
+    )
+
+    for section in sections:
+        for line in section.strip().split('\n'):
+            line = line.strip()
+            if not line or not line.startswith(('-', '*')):
+                continue
+
+            m = line_pattern.match(line)
+            if not m:
+                continue
+
+            label = m.group(1).strip().lower()
+            try:
+                val = float(m.group(2).replace(',', '.'))
+            except ValueError:
+                continue
+
+            # Look up in key map
+            internal_key = SCAFFOLD_KEY_MAP.get(label)
+            if internal_key:
+                # For duplicate keys across sections (e.g. whatif baseline vs scenario),
+                # keep the FIRST occurrence (baseline) for core fields,
+                # but allow overwrite for comparison-specific fields
+                comparison_keys = {"delta_exd", "annual_energy_savings", "annual_cost_savings"}
+                if internal_key not in values or internal_key in comparison_keys:
+                    values[internal_key] = val
+            else:
+                # Try partial matching for common variations
+                for map_key, internal in SCAFFOLD_KEY_MAP.items():
+                    if map_key in label and internal not in values:
+                        values[internal] = val
+                        break
+
+    return values
+
+
+# ============================================================
+# PHASE 1: JSON BLOCK PARSER (v0.2 backward compat)
+# ============================================================
+
 def _extract_from_json_block(text: str) -> dict[str, Optional[float]]:
     """
-    Extract values from the machine-readable JSON block at end of response.
+    Extract values from the machine-readable JSON block.
     Returns empty dict if no valid JSON block found.
     """
-    # JSON key → internal key mapping
     key_map = {
         "exergy_in_kW": "exergy_in",
         "exergy_out_kW": "exergy_out",
@@ -171,19 +313,10 @@ def _extract_from_json_block(text: str) -> dict[str, Optional[float]]:
         "f_factor": "f_factor",
     }
 
-    # Find JSON block: v0.2 puts it at the BEGINNING, v0.1 had it at the END
-    # Try beginning first (### JSON Summary), then fall back to end
-    pattern_begin = r'```json\s*\n?\s*(\{[^}]+\})\s*\n?\s*```'
-    pattern_end = r'```json\s*\n?\s*(\{[^}]+\})\s*\n?\s*```\s*$'
-    
-    # Try to find ANY json block (works for both positions)
-    match = re.search(pattern_begin, text, re.DOTALL)
-    
+    # Find JSON block
+    match = re.search(r'```json\s*\n?\s*(\{[^}]+\})\s*\n?\s*```', text, re.DOTALL)
     if not match:
-        # Try without code fence (bare JSON)
-        pattern = r'(\{"exergy_in_kW"[^}]+\})'
-        match = re.search(pattern, text, re.DOTALL)
-    
+        match = re.search(r'(\{"exergy_in_kW"[^}]+\})', text, re.DOTALL)
     if not match:
         return {}
 
@@ -192,24 +325,26 @@ def _extract_from_json_block(text: str) -> dict[str, Optional[float]]:
     except (json.JSONDecodeError, ValueError):
         return {}
 
-    # Map JSON keys to internal keys, skip nulls
     values = {}
     for json_key, internal_key in key_map.items():
         val = raw.get(json_key)
         if val is not None and isinstance(val, (int, float)):
             values[internal_key] = float(val)
 
-    # Sanity check: need at least 3 core values to trust the JSON
     core_keys = {"exergy_in", "exergy_out", "exergy_destroyed", "efficiency"}
     if len(core_keys & set(values.keys())) < 3:
-        return {}  # JSON block is incomplete/corrupt, fall back to regex
+        return {}
 
     return values
 
 
+# ============================================================
+# PHASE 2+3: REGEX FALLBACK (backward compat)
+# ============================================================
+
 def _extract_from_regex(text: str) -> dict[str, Optional[float]]:
     """
-    Regex-based extraction (fallback for pre-JSON examples or truncated responses).
+    Regex-based extraction (fallback for pre-scaffold examples or model inference output).
     
     3-phase strategy:
     1. Strict kW table patterns
@@ -218,28 +353,20 @@ def _extract_from_regex(text: str) -> dict[str, Optional[float]]:
     """
     values = {}
 
-    # Physical validity ranges for sanity checking
-    # NOTE: extraction ranges are WIDER than quality check ranges.
-    # We want to EXTRACT physically questionable values so quality checks can FLAG them.
     valid_ranges = {
-        "exergy_in": (0.01, 100000),      # kW
-        "exergy_out": (0.01, 100000),      # kW
-        "exergy_destroyed": (-1000, 100000), # kW, allow negative for 2nd law check to catch
-        "efficiency": (0.0, 200.0),         # %, wider range so quality check can flag >100%
-        "entropy_generation": (0.0001, 1000),  # kW/K
-        "bejan_number": (0.0, 1.0),        # dimensionless, MUST be 0-1
-        "f_factor": (0.0, 1.0),            # dimensionless
-        "avoidable": (0.0, 100000),        # kW
-        "unavoidable": (0.0, 100000),      # kW
+        "exergy_in": (0.01, 100000),
+        "exergy_out": (0.01, 100000),
+        "exergy_destroyed": (-1000, 100000),
+        "efficiency": (0.0, 200.0),
+        "entropy_generation": (0.0001, 1000),
+        "bejan_number": (0.0, 1.0),
+        "f_factor": (0.0, 1.0),
+        "avoidable": (0.0, 100000),
+        "unavoidable": (0.0, 100000),
     }
 
-    # === PHASE 1: Try summary table extraction first ===
-    # Look for the LAST markdown table in the text (most likely the summary)
-    # For kW values: match rows where unit column contains "kW"
-    # CRITICAL: "Exergy destruction ratio" must NOT match "Exergy destruction"
-    
+    # === PHASE 2: Table extraction ===
     table_patterns_kw = {
-        # These patterns require "kW" in the unit column to avoid catching percentages or dimensionless numbers
         "exergy_in": r"\|\s*(?:[Ee]xergy\s+[Ii]nput|[Ee]lectrical\s+power\s+input)[^|]*\|\s*([\d,.]+)\s*\|\s*kW\s*\|",
         "exergy_out": r"\|\s*(?:[Ee]xergy\s+(?:[Oo]utput|[Pp]roduct)|[Ff]low\s+exergy\s+increase|[Uu]seful\s+exergy\s+output)[^|]*\|\s*([\d,.]+)\s*\|\s*kW\s*\|",
         "exergy_destroyed": r"\|\s*[Ee]xergy\s+[Dd]estruction\s*\([^)]*\)\s*\|\s*(-?[\d,.]+)\s*\|\s*kW\s*\|",
@@ -247,42 +374,28 @@ def _extract_from_regex(text: str) -> dict[str, Optional[float]]:
         "avoidable": r"\|\s*[Aa]voidable\s+(?:exergy\s+)?(?:destruction\s*)?\(?[^|]*\|\s*([\d,.]+)\s*\|\s*kW\s*\|",
         "unavoidable": r"\|\s*[Uu]navoidable\s+(?:exergy\s+)?(?:destruction\s*)?\(?[^|]*\|\s*([\d,.]+)\s*\|\s*kW\s*\|",
     }
-    
+
     table_patterns_other = {
-        # These don't need kW - they match % or dimensionless
         "efficiency": r"\|\s*[Ee]xergy\s+[Ee]fficiency[^|]*\|\s*([\d,.]+)\s*\|\s*%\s*\|",
-        # N_s (exergy destruction ratio) — NOT Bejan number (Be) which is a different quantity
         "bejan_number": r"\|\s*(?:[Ee]xergy\s+[Dd]estruction\s+ratio|[Dd]imensionless\s+entropy|[Ee]ntropy\s+generation\s+number)\s*[^|]*\|\s*([\d,.]+)\s*\|\s*[—–-]\s*\|",
         "f_factor": r"\|\s*[Ee]xergoeconomic\s+[Ff]actor[^|]*\|\s*([\d,.]+)\s*\|",
     }
 
-    # Try kW patterns first (most reliable)
-    for key, pattern in table_patterns_kw.items():
-        matches = list(re.finditer(pattern, text, re.IGNORECASE))
-        if matches:
-            try:
-                val = float(matches[-1].group(1).replace(",", "."))
-                lo, hi = valid_ranges.get(key, (0, 1e9))
-                if lo <= val <= hi:
-                    values[key] = val
-            except ValueError:
-                pass
+    for patterns in [table_patterns_kw, table_patterns_other]:
+        for key, pattern in patterns.items():
+            if key in values:
+                continue
+            matches = list(re.finditer(pattern, text, re.IGNORECASE))
+            if matches:
+                try:
+                    val = float(matches[-1].group(1).replace(",", "."))
+                    lo, hi = valid_ranges.get(key, (0, 1e9))
+                    if lo <= val <= hi:
+                        values[key] = val
+                except ValueError:
+                    pass
 
-    # Then try non-kW patterns
-    for key, pattern in table_patterns_other.items():
-        if key in values:
-            continue
-        matches = list(re.finditer(pattern, text, re.IGNORECASE))
-        if matches:
-            try:
-                val = float(matches[-1].group(1).replace(",", "."))
-                lo, hi = valid_ranges.get(key, (0, 1e9))
-                if lo <= val <= hi:
-                    values[key] = val
-            except ValueError:
-                pass
-
-    # Fallback: looser table patterns (no unit check) for values not yet found
+    # Loose table patterns (no unit check)
     table_patterns_loose = {
         "exergy_in": r"\|\s*(?:[Ee]xergy\s+[Ii]nput|[Ee]lectrical\s+power\s+input)[^|]*\|\s*([\d,.]+)\s*\|",
         "exergy_out": r"\|\s*(?:[Ee]xergy\s+(?:[Oo]utput|[Pp]roduct)|[Ff]low\s+exergy\s+increase|[Uu]seful\s+exergy\s+output)[^|]*\|\s*([\d,.]+)\s*\|",
@@ -293,7 +406,7 @@ def _extract_from_regex(text: str) -> dict[str, Optional[float]]:
         "avoidable": r"\|\s*[Aa]voidable[^|]*\|\s*([\d,.]+)\s*\|\s*kW",
         "unavoidable": r"\|\s*[Uu]navoidable[^|]*\|\s*([\d,.]+)\s*\|\s*kW",
     }
-    
+
     for key, pattern in table_patterns_loose.items():
         if key in values:
             continue
@@ -307,7 +420,7 @@ def _extract_from_regex(text: str) -> dict[str, Optional[float]]:
             except ValueError:
                 pass
 
-    # === PHASE 2: Inline extraction for values not found in tables ===
+    # === PHASE 3: Inline extraction ===
     inline_patterns = {
         "exergy_in": [
             r"Ėx_in\s*=\s*([\d,.]+)\s*kW",
@@ -327,17 +440,12 @@ def _extract_from_regex(text: str) -> dict[str, Optional[float]]:
             r"[Ee]xergy\s+[Ee]fficiency\s*=\s*([\d,.]+)\s*%",
         ],
         "entropy_generation": [
-            # Direct: Ṡ_gen = 0.05316 kW/K
             r"[SṠ]_gen\s*=\s*([\d,.]+)\s*kW/K",
             r"Ṡ_gen\s*=\s*([\d,.]+)\s*kW/K",
-            # Multi-step: Ṡ_gen = Ėx_d / T₀ = 527.72 / 298.15 = 1.7700 kW/K
-            # Greedy .* grabs everything, then backtracks to find last = <number> kW/K
             r"[SṠ]_gen.*=\s*([\d,.]+)\s*kW/K",
         ],
         "bejan_number": [
-            # Direct: N_s = 0.504 (not followed by division)
             r"N_s\s*=\s*([\d,.]+)(?:\s*$|\s+[^/]|\s*\n)",
-            # Multi-step: N_s = 527.72 / 1046.40 = 0.504
             r"N_s\s*=\s*[\d,.]+\s*/\s*[\d,.]+\s*=\s*([\d,.]+)",
         ],
         "f_factor": [
@@ -355,13 +463,12 @@ def _extract_from_regex(text: str) -> dict[str, Optional[float]]:
 
     for key, pattern_list in inline_patterns.items():
         if key in values:
-            continue  # Already found in table
+            continue
 
         lo, hi = valid_ranges.get(key, (0, 1e9))
-        
+
         for pattern in pattern_list:
             matches = list(re.finditer(pattern, text, re.IGNORECASE | re.MULTILINE))
-            # Filter to physically valid matches
             valid_matches = []
             for m in matches:
                 try:
@@ -370,14 +477,17 @@ def _extract_from_regex(text: str) -> dict[str, Optional[float]]:
                         valid_matches.append(val)
                 except ValueError:
                     pass
-            
+
             if valid_matches:
-                # Take the LAST valid match (most likely the final calculated result)
                 values[key] = valid_matches[-1]
                 break
 
     return values
 
+
+# ============================================================
+# BATCH QUALITY CHECK
+# ============================================================
 
 def batch_quality_check(dataset_path: str) -> dict:
     """
