@@ -244,12 +244,18 @@ SCAFFOLD_KEY_MAP = {
     "exergy destruction": "exergy_destroyed",
     "total exergy destruction": "exergy_destroyed",
     "exergy destroyed (total)": "exergy_destroyed",
+    "exergy destroyed (internal irreversibility)": "exergy_destroyed",
 
-    # Waste exergy
+    # Waste exergy — expanded variants
     "exergy waste": "exergy_waste",
     "waste exergy": "exergy_waste",
     "waste stream exergy": "exergy_waste",
     "flue gas exergy loss": "exergy_waste",
+    "exergy of stack gas losses": "exergy_waste",
+    "exergy of thermal shell losses": "exergy_waste",
+    "stack gas exergy loss": "exergy_waste",
+    "exergy loss (to environment)": "exergy_waste",
+    "exergy lost to environment": "exergy_waste",
 
     # Exergoeconomic
     "crf": "crf",
@@ -447,8 +453,16 @@ def _extract_from_scaffold(text: str) -> dict[str, Optional[float]]:
                         val = preferred_vals[-1]  # Last match with correct unit
                 
                 if val is None and not preferred and bare_val is not None:
-                    # Dimensionless key (CRF, Bejan, f-factor): prefer bare number
-                    val = bare_val
+                    # Dimensionless key (CRF, Bejan, f-factor): prefer LAST number after "="
+                    # Handles: "Bejan (Ns): 76.00 / 118.02 = 0.644" → want 0.644, not 76.00
+                    last_eq = re.findall(r"=\s*([\d]+[.,][\d]+|[\d]+)", value_part)
+                    if last_eq:
+                        try:
+                            val = float(last_eq[-1].replace(',', '.'))
+                        except ValueError:
+                            val = bare_val
+                    else:
+                        val = bare_val
                 
                 if val is None and parsed_matches and internal_key not in STRICT_UNIT_KEYS:
                     # Non-strict keys: take last match regardless of unit
@@ -459,7 +473,17 @@ def _extract_from_scaffold(text: str) -> dict[str, Optional[float]]:
 
                 if val is not None:
                     comparison_keys = {"delta_exd", "annual_energy_savings", "annual_cost_savings"}
-                    if internal_key not in values or internal_key in comparison_keys:
+                    
+                    # Special: "exergy destroyed (total)" overrides component values
+                    # Only override if new total > existing (prevents scenario overriding baseline in whatif)
+                    if (internal_key == "exergy_destroyed" and "total" in label 
+                            and internal_key in values and val > values[internal_key]):
+                        values[internal_key] = val
+                    # Special: waste streams are SUMMED (stack + shell + other losses)
+                    elif internal_key == "exergy_waste":
+                        values[internal_key] = values.get(internal_key, 0.0) + val
+                    # Normal: keep first for core, allow overwrite for comparison
+                    elif internal_key not in values or internal_key in comparison_keys:
                         values[internal_key] = val
 
     return values
