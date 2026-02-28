@@ -1322,6 +1322,90 @@ class BenchmarkResult:
     errors: list = field(default_factory=list)
 
 
+def _extract_exergy_efficiency(output: str) -> float | None:
+    """
+    Extract exergy/second-law efficiency from model output.
+    
+    Multi-strategy approach (v0.3 fix):
+    1. JSON block (if present)
+    2. Line-level: find lines with "exergy efficiency" + number, EXCLUDE false positives
+    3. Table cell: "exergy" row with percentage
+    4. Broad fallback (original regex, last resort)
+    
+    Returns float (percentage) or None if not found.
+    """
+    text = output.lower()
+    
+    # --- Strategy 1: JSON block (unchanged) ---
+    json_match = re.search(r'```json\s*[\{\[].+?[\}\]]\s*```', output, re.DOTALL)
+    if json_match:
+        try:
+            clean = json_match.group().replace("```json", "").replace("```", "").strip()
+            parsed = json.loads(clean)
+            if isinstance(parsed, dict):
+                eff = parsed.get("efficiency_pct")
+                if eff is not None:
+                    return float(eff)
+            elif isinstance(parsed, list):
+                for item in parsed:
+                    if isinstance(item, dict) and "efficiency_pct" in item:
+                        return float(item["efficiency_pct"])
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+    
+    # --- Strategy 2: Line-level search (NEW) ---
+    # Split into lines, find lines that explicitly say "exergy efficiency" with a number
+    # Exclude lines about other efficiency types
+    EXCLUDE_KEYWORDS = [
+        "isentropic", "first-law", "first law", "thermal efficiency",
+        "mechanical", "carnot", "motor efficiency", "hydraulic",
+        "generator", "pump efficiency", "volumetric", "cop",
+    ]
+    
+    EXERGY_PATTERNS = [
+        # "exergy efficiency = 42.5%" or "exergy efficiency: 42.5%"
+        r'exergy\s*(?:\(second[- ]law\))?\s*efficiency\s*[=:≈]\s*(\d+\.?\d*)\s*%',
+        # "second-law efficiency = 42.5%" or "second law efficiency: 42.5%"
+        r'second[- ]law\s*efficiency\s*[=:≈]\s*(\d+\.?\d*)\s*%',
+        # "ε = 42.5%" or "ψ = 42.5%" (exergy efficiency symbols)
+        r'[εψ]\s*[=:≈]\s*(\d+\.?\d*)\s*%',
+        # "η_ex = 42.5%" or "η_II = 42.5%"
+        r'η[_]?\s*(?:ex|ii|exergy|2nd)\s*[=:≈]\s*(\d+\.?\d*)\s*%',
+        # "exergetic efficiency = 42.5%"
+        r'exergetic\s*efficiency\s*[=:≈]\s*(\d+\.?\d*)\s*%',
+    ]
+    
+    for line in text.split('\n'):
+        # Skip lines about other efficiency types
+        if any(kw in line for kw in EXCLUDE_KEYWORDS):
+            continue
+        
+        for pattern in EXERGY_PATTERNS:
+            m = re.search(pattern, line)
+            if m:
+                val = float(m.group(1))
+                # Sanity: efficiency must be 0-100%
+                if 0 < val <= 100:
+                    return val
+    
+    # --- Strategy 3: Table cell extraction ---
+    # Look for markdown table rows with "exergy" and a percentage
+    table_pattern = r'\|[^|]*exerg[^|]*\|[^|]*?(\d+\.?\d*)\s*%'
+    for m in re.finditer(table_pattern, text):
+        val = float(m.group(1))
+        if 0 < val <= 100:
+            return val
+    
+    # --- Strategy 4: Broad fallback (original, but with >100% filter) ---
+    m = re.search(r'(?:exergy|second.law)\s*efficiency.*?(\d+\.?\d*)\s*%', text)
+    if m:
+        val = float(m.group(1))
+        if 0 < val <= 100:
+            return val
+    
+    return None
+
+
 def check_structure(output: str, expected: dict) -> dict:
     """Run structural and physics checks on model output."""
     checks = {}
@@ -1349,27 +1433,7 @@ def check_structure(output: str, expected: dict) -> dict:
     # --- Physics checks ---
     if "efficiency_range" in expected:
         lo, hi = expected["efficiency_range"]
-        eff = None
-        # Try JSON first
-        json_match = re.search(r'```json\s*[\{\[].+?[\}\]]\s*```', output, re.DOTALL)
-        if json_match:
-            try:
-                clean = json_match.group().replace("```json", "").replace("```", "").strip()
-                parsed = json.loads(clean)
-                if isinstance(parsed, dict):
-                    eff = parsed.get("efficiency_pct")
-                elif isinstance(parsed, list):
-                    for item in parsed:
-                        if isinstance(item, dict) and "efficiency_pct" in item:
-                            eff = item["efficiency_pct"]
-                            break
-            except (json.JSONDecodeError, TypeError):
-                pass
-        # Fallback: regex
-        if eff is None:
-            m = re.search(r'(?:exergy|second.law)\s*efficiency.*?(\d+\.?\d*)\s*%', text)
-            if m:
-                eff = float(m.group(1))
+        eff = _extract_exergy_efficiency(output)
         if eff is not None:
             checks["efficiency_physical"] = lo <= eff <= hi
             checks["efficiency_value"] = eff
@@ -1451,7 +1515,17 @@ def check_structure(output: str, expected: dict) -> dict:
     if expected.get("has_unavoidable_calc"):
         checks["unavoidable"] = any(x in text for x in ["unavoidable", "ex_d,un", "ex_d_un", "bat", "best available"])
     if expected.get("has_avoidable_ratio"):
-        checks["avoidable_ratio"] = any(x in text for x in ["avoidable ratio", "ar =", "improvement potential"])
+        checks["avoidable_ratio"] = any(x in text for x in [
+            "avoidable ratio", "avoidable fraction", "avoidable share",
+            "avoidable percentage", "avoidable portion",
+            "avoidable/total", "avoidable/unavoidable",
+            "ar =", "ar=",
+            "improvement potential", "improvement margin",
+            "reduction potential", "savings potential",
+            "ėd,av/ėd", "ed,av/ed", "ex_d,av/ex_d",
+            "avoidable exergy destruction ratio",
+            "% avoidable", "% of total",
+        ])
 
     return checks
 

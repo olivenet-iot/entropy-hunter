@@ -5,6 +5,22 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![HuggingFace](https://img.shields.io/badge/🤗-HuggingFace-yellow.svg)](https://huggingface.co/OlivenetAI)
 [![Status: In Development](https://img.shields.io/badge/Status-In_Development-orange.svg)]()
+[![Benchmark: 85.5%](https://img.shields.io/badge/Benchmark-85.5%25_Grade_B+-green.svg)]()
+
+---
+
+## Current Model: v0.2
+
+| Metric | Value |
+|--------|-------|
+| Base model | Qwen2.5-7B-Instruct |
+| Fine-tuning | LoRA r=16, Unsloth |
+| Benchmark | **85.5%** (40 tests x 3 runs, Grade B+) |
+| vs Base Qwen | **+17.3pp** improvement |
+| Temperature | 0.7 (optimal) |
+| Training data | 800 examples, Alpaca format |
+
+See [docs/BENCHMARK_ANALYSIS.md](docs/BENCHMARK_ANALYSIS.md) for detailed results.
 
 ---
 
@@ -66,6 +82,8 @@ entropy-hunter/
 ├── data/              # Generated datasets (not tracked in git)
 ├── training/          # LoRA fine-tuning scripts
 ├── eval/              # Evaluation benchmarks & results
+├── docs/              # Analysis documentation
+├── archive/           # Archived experiments
 └── serving/           # Deployment configurations
 ```
 
@@ -84,9 +102,10 @@ Training data is informed by the [ExergyLab](https://github.com/your-username/ex
 ## Roadmap
 
 - [x] **v0.0** — Project structure, taxonomy, prompt templates
-- [ ] **v0.1** — MVP: ~800 examples, basic exergy + EGM + SPECO (target: Q2 2026)
-- [ ] **v0.2** — Extended: ~3000 examples, pinch + Tsatsaronis + thermoeconomic
-- [ ] **v0.3** — Expert: ~5000+ examples, fault diagnosis + Turkish support
+- [x] **v0.1** — MVP: ~800 examples, basic exergy + EGM + SPECO
+- [x] **v0.2** — Current: 85.5% benchmark, LoRA r=16, Qwen2.5-7B (active model)
+- [x] ~~**v0.3**~~ — JSON-free experiment: -7.2pp regression, archived
+- [ ] **v0.4** — 14B base + Calculation Summary scaffold (planned)
 - [ ] **v1.0** — Production: ExergyLab integration, edge deployment
 
 ## Technical Foundation

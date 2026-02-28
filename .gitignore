@@ -54,3 +54,6 @@ wandb/
 # Scratch / one-off debug output
 *_output.txt
 /scratch/
+
+# Misc
+nohup.out
