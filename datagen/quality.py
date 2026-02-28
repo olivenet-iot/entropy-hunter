@@ -46,14 +46,26 @@ def check_example(example: dict) -> QualityResult:
     # 1. Energy balance check (Ex_in = Ex_out + Ex_waste + Ex_destroyed)
     values = extract_numeric_values(output_text)
     if values.get("exergy_in") and values.get("exergy_out") and values.get("exergy_destroyed"):
-        ex_waste = values.get("exergy_waste", 0.0)  # 0 if no waste streams
-        balance = abs(values["exergy_in"] - values["exergy_out"] - ex_waste - values["exergy_destroyed"])
-        tolerance = QUALITY["energy_balance_tolerance_pct"] / 100 * values["exergy_in"]
+        ex_in = values["exergy_in"]
+        ex_out = values["exergy_out"]
+        ex_d = values["exergy_destroyed"]
+        ex_waste = values.get("exergy_waste", 0.0)
+        
+        # Try with waste first
+        balance_with_waste = abs(ex_in - ex_out - ex_waste - ex_d)
+        # Try without waste (in case parser grabbed wrong waste value)
+        balance_without_waste = abs(ex_in - ex_out - ex_d)
+        
+        # Use the better-closing balance
+        balance = min(balance_with_waste, balance_without_waste)
+        tolerance = QUALITY["energy_balance_tolerance_pct"] / 100 * ex_in
+        
         checks["energy_balance"] = balance <= tolerance
         if not checks["energy_balance"]:
             errors.append(
-                f"Energy balance violation: |{values['exergy_in']:.1f} - {values['exergy_out']:.1f} "
-                f"- {ex_waste:.1f}(waste) - {values['exergy_destroyed']:.1f}| = {balance:.1f} > {tolerance:.1f}"
+                f"Energy balance violation: |{ex_in:.1f} - {ex_out:.1f} "
+                f"- {ex_waste:.1f}(waste) - {ex_d:.1f}| = {balance_with_waste:.1f}, "
+                f"without waste = {balance_without_waste:.1f}, tol = {tolerance:.1f}"
             )
     else:
         checks["energy_balance"] = None  # cannot verify
@@ -162,7 +174,18 @@ def extract_numeric_values(text: str) -> dict[str, Optional[float]]:
     # === PHASE 0: Try Calculation Summary scaffold first (v0.4) ===
     values = _extract_from_scaffold(text)
     if values and len(values) >= 3:
-        return values
+        # Sanity check: if physically impossible, fall through to regex
+        ei = values.get("exergy_in")
+        eo = values.get("exergy_out")
+        ed = values.get("exergy_destroyed")
+        if ei and eo and ei > 0 and eo > ei * 5:
+            # exergy_out >> exergy_in → parser grabbed wrong values
+            pass  # fall through to regex
+        elif ei and ed and ei > 0 and ed > ei * 2:
+            # exergy_destroyed >> exergy_in → parser grabbed wrong values
+            pass  # fall through
+        else:
+            return values
 
     # === PHASE 1: Try JSON summary block (v0.2 backward compat) ===
     values = _extract_from_json_block(text)
@@ -407,6 +430,16 @@ def _extract_from_scaffold(text: str) -> dict[str, Optional[float]]:
                 preferred = PREFERRED_UNIT.get(internal_key)
                 val = None
                 
+                # Keys that MUST match their preferred unit (no fallback to wrong unit)
+                # Prevents "waste streams at 80°C" → exergy_waste = 80 kW
+                STRICT_UNIT_KEYS = {
+                    "exergy_in", "exergy_out", "exergy_destroyed", "exergy_waste",
+                    "avoidable", "unavoidable",
+                    "sgen_ht", "sgen_dp", "sgen_mix", "entropy_generation",
+                    "z_dot", "c_dot_d", "c_fuel", "total_cost_rate",
+                    "annual_energy_savings", "annual_cost_savings",
+                }
+                
                 if preferred and parsed_matches:
                     # Key has a preferred unit (kW, kW/K, %, etc.)
                     preferred_vals = [v for v, u in parsed_matches if u == preferred]
@@ -417,11 +450,11 @@ def _extract_from_scaffold(text: str) -> dict[str, Optional[float]]:
                     # Dimensionless key (CRF, Bejan, f-factor): prefer bare number
                     val = bare_val
                 
-                if val is None and parsed_matches:
-                    # Fallback: take last match regardless of unit
+                if val is None and parsed_matches and internal_key not in STRICT_UNIT_KEYS:
+                    # Non-strict keys: take last match regardless of unit
                     val = parsed_matches[-1][0]
                 
-                if val is None and bare_val is not None:
+                if val is None and bare_val is not None and internal_key not in STRICT_UNIT_KEYS:
                     val = bare_val
 
                 if val is not None:

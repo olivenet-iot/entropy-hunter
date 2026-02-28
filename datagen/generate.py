@@ -1,10 +1,16 @@
 """
-EntropyHunter — Synthetic Data Generation Script
+EntropyHunter — Synthetic Data Generation Script (v5 — Scaffold)
+
+CHANGE LOG v4→v5:
+- Output directory: data/v0.2 → data/v0.4
+- ANALYSIS_WEIGHTS rebalanced for v0.4 (more whatif/AV-UN/hotspot)
+- Metadata includes scaffold_version and data_version tags
+- Imports from system_prompts (v5) and quality (v5) automatically
 
 Generates training examples by:
 1. Creating random prompts from templates (Family A-F)
 2. Sending to Claude API (teacher model) — sync or batch
-3. Running quality checks
+3. Running quality checks (scaffold-aware parser)
 4. Saving approved examples to JSONL
 
 Usage:
@@ -60,6 +66,10 @@ from config import (
     SKILLS_DIR,
 )
 
+# v0.4: Override output directory to data/v0.4
+DATA_V04_DIR = Path("data/v0.4")
+DATA_V01_DIR = DATA_V04_DIR  # Redirect all references
+
 # ============================================================
 # FAMILY IMPORTS
 # ============================================================
@@ -94,18 +104,17 @@ FAMILY_DISPATCH = {
 
 ALL_EQUIPMENT_TYPES = list(EQUIPMENT_TYPES_A.keys())
 
-## v0.2 weights: shifted toward weak areas identified by audit
-# Exergoeconomic: CRF regression fix (was 0% benchmark, 49% in training)
-# Entropy generation: grade + mechanism split fix (was 0.3% and 8% values in training)
-# Basic exergy: T2s + steam tables reinforcement
-# Whatif/AV-UN/Hotspot: maintain (already 60-83% benchmark)
+## v0.4 weights: rebalanced for Calculation Summary scaffold
+# All families now have scaffold templates → more even distribution
+# whatif/AV-UN/hotspot increased (were under-represented in v0.2)
+# Total: 1200 examples target
 ANALYSIS_WEIGHTS = {
-    "basic_exergy":          200,
+    "basic_exergy":          250,
     "exergoeconomic":        250,
     "entropy_generation":    250,
-    "whatif_comparison":      80,
-    "avoidable_unavoidable":  70,
-    "hotspot_detection":      50,
+    "whatif_comparison":      150,
+    "avoidable_unavoidable":  150,
+    "hotspot_detection":      100,
 }
 
 
@@ -255,6 +264,8 @@ def generate_single_example(
         "metadata": {
             **metadata,
             "teacher_model": TEACHER_MODEL,
+            "scaffold_version": "v5",
+            "data_version": "v0.4",
             "generation_time_s": round(elapsed, 1),
             "quality_passed": qr.passed,
             "quality_checks": qr.checks,
@@ -607,6 +618,8 @@ def batch_download(batch_id: str, meta_path: str = None):
                     "metadata": {
                         **metadata,
                         "teacher_model": TEACHER_MODEL,
+                        "scaffold_version": "v5",
+                        "data_version": "v0.4",
                         "batch_id": batch_id,
                         "custom_id": custom_id,
                         "quality_passed": qr.passed,
