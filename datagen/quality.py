@@ -179,7 +179,7 @@ def extract_numeric_values(text: str) -> dict[str, Optional[float]]:
 
 # Key normalization: scaffold label → internal key
 SCAFFOLD_KEY_MAP = {
-    # Basic exergy
+    # Basic exergy — standard labels
     "exergy in": "exergy_in",
     "exergy out": "exergy_out",
     "exergy out (product)": "exergy_out",
@@ -194,11 +194,50 @@ SCAFFOLD_KEY_MAP = {
     "bejan number": "bejan_number",
     "bejan number (ns)": "bejan_number",
 
+    # Exergy in — Opus label variants (fallback)
+    "electrical power input": "exergy_in",
+    "electrical power input (exergy fuel)": "exergy_in",
+    "electrical input": "exergy_in",
+    "fuel exergy input": "exergy_in",
+    "fuel exergy": "exergy_in",
+    "exergy input": "exergy_in",
+    "total exergy input": "exergy_in",
+    "motor shaft power input": "exergy_in",
+    "compressor power input": "exergy_in",
+    "thermal exergy input": "exergy_in",
+
+    # Exergy out — Opus label variants (fallback)
+    "exergy output": "exergy_out",
+    "product exergy": "exergy_out",
+    "useful exergy output": "exergy_out",
+    "hydraulic power (exergy product)": "exergy_out",
+    "hydraulic power": "exergy_out",
+    "flow exergy increase": "exergy_out",
+    "steam exergy output": "exergy_out",
+    "cooling exergy output": "exergy_out",
+    "exergy of product": "exergy_out",
+
+    # Exergy destroyed — Opus label variants
+    "exergy destruction": "exergy_destroyed",
+    "total exergy destruction": "exergy_destroyed",
+    "exergy destroyed (total)": "exergy_destroyed",
+
+    # Waste exergy
+    "exergy waste": "exergy_waste",
+    "waste exergy": "exergy_waste",
+    "waste stream exergy": "exergy_waste",
+    "flue gas exergy loss": "exergy_waste",
+
     # Exergoeconomic
     "crf": "crf",
+    "capital recovery factor": "crf",
+    "capital recovery factor (crf)": "crf",
     "investment cost rate (zdot)": "z_dot",
+    "investment cost rate": "z_dot",
     "fuel cost rate (cf)": "c_fuel",
+    "fuel cost rate": "c_fuel",
     "destruction cost rate (cdotd)": "c_dot_d",
+    "destruction cost rate": "c_dot_d",
     "exergoeconomic factor (f)": "f_factor",
     "exergoeconomic factor": "f_factor",
     "total cost rate": "total_cost_rate",
@@ -207,20 +246,26 @@ SCAFFOLD_KEY_MAP = {
     "heat transfer (sgen,ht)": "sgen_ht",
     "pressure drop (sgen,dp)": "sgen_dp",
     "mixing/chemical (sgen,mix)": "sgen_mix",
+    # Opus variants
+    "s_gen,ht (heat transfer)": "sgen_ht",
+    "s_gen,dp (pressure drop)": "sgen_dp",
+    "s_gen,mix (mixing/chemical)": "sgen_mix",
+    "heat transfer irreversibility": "sgen_ht",
+    "pressure drop irreversibility": "sgen_dp",
+    "mixing irreversibility": "sgen_mix",
 
     # AV/UN
     "unavoidable exergy destruction": "unavoidable",
     "avoidable exergy destruction": "avoidable",
     "avoidable ratio": "avoidable_ratio",
+    # Opus variants
+    "unavoidable destruction": "unavoidable",
+    "avoidable destruction": "avoidable",
 
     # What-if
     "annual energy savings": "annual_energy_savings",
     "annual cost savings": "annual_cost_savings",
     "delta exergy destroyed": "delta_exd",
-
-    # Waste exergy (for energy balance)
-    "exergy waste": "exergy_waste",
-    "waste exergy": "exergy_waste",
 }
 
 
@@ -228,14 +273,17 @@ def _extract_from_scaffold(text: str) -> dict[str, Optional[float]]:
     """
     Extract values from ## Calculation Summary scaffold sections.
     
-    Parses lines matching: `- Label: NUMBER UNIT`
-    Handles multiple scaffold sections (whatif has Baseline + Scenario + Comparison).
-    For whatif, returns the BASELINE values for core fields and COMPARISON values for deltas.
+    Handles two value formats:
+    1. Simple:   `- Exergy in: 55.00 kW`
+    2. Equation: `- Fuel exergy input: Ex_fuel = 515.46 × 1.04 = 536.08 kW`
     
+    Strategy: For each bullet line, find the LAST number followed by a recognized unit.
+    This handles equations naturally (takes the final result, not intermediates).
+    
+    For whatif, returns BASELINE values for core fields and COMPARISON values for deltas.
     Returns empty dict if no scaffold found.
     """
     # Find all Calculation Summary sections
-    # Match: ## Calculation Summary, ## Calculation Summary — Baseline, etc.
     sections = re.findall(
         r"## Calculation Summary[^\n]*\n(.*?)(?=\n## (?!Calculation)|$)",
         text, re.DOTALL
@@ -246,47 +294,140 @@ def _extract_from_scaffold(text: str) -> dict[str, Optional[float]]:
 
     values = {}
 
-    # Regex for scaffold lines: - Label: NUMBER UNIT
-    # Also handles: - Label: T₀ = 25°C (298.15 K)  → won't match as simple number
-    # And: - Label: VALUE UNIT (more text)
-    line_pattern = re.compile(
-        r"^\s*[-*]\s*(.+?):\s+"          # Label (capture group 1)
-        r"([\d]+[.,]?[\d]*)"             # Number (capture group 2)
-        r"\s*(%|kW|kJ|K|°C|kW/K|EUR/h|EUR/kWh|EUR|h/yr|pp|kWh/yr|EUR/yr)?",  # Unit (opt, group 3)
-        re.MULTILINE
+    # Units we recognize (order matters — longer first to avoid partial matches)
+    UNIT_PATTERN = r"(kWh/yr|EUR/yr|EUR/kWh|EUR/h|kW/K|h/yr|kW|kJ|°C|EUR|pp|%|K)"
+    
+    # Preferred unit per internal key — parser picks match with this unit first
+    # Falls back to last match if preferred unit not found
+    PREFERRED_UNIT = {
+        "exergy_in": "kW", "exergy_out": "kW", "exergy_destroyed": "kW",
+        "exergy_waste": "kW", "avoidable": "kW", "unavoidable": "kW",
+        "efficiency": "%", "avoidable_ratio": "%",
+        "entropy_generation": "kW/K",
+        "sgen_ht": "kW/K", "sgen_dp": "kW/K", "sgen_mix": "kW/K",
+        "z_dot": "EUR/h", "c_dot_d": "EUR/h", "c_fuel": "EUR/kWh",
+        "total_cost_rate": "EUR/h",
+        "annual_energy_savings": "kWh/yr", "annual_cost_savings": "EUR/yr",
+    }
+
+    # Pattern to find ALL (number, unit) pairs on a line
+    num_unit_pattern = re.compile(
+        r"~?([\d]+[.,][\d]+|[\d]+(?:,\d{3})*)"   # Number (with optional comma thousands)
+        r"\s*" + UNIT_PATTERN,                      # Followed by recognized unit
+        re.IGNORECASE
+    )
+    
+    # Simpler pattern for dimensionless values (no unit, end of meaningful content)
+    num_bare_pattern = re.compile(
+        r"=\s*([\d]+[.,][\d]+|[\d]+)\s*$"
     )
 
     for section in sections:
         for line in section.strip().split('\n'):
             line = line.strip()
-            if not line or not line.startswith(('-', '*')):
+            if not line.startswith(('-', '*')):
                 continue
 
-            m = line_pattern.match(line)
-            if not m:
+            # Split at first colon to get label and value part
+            colon_pos = line.find(':')
+            if colon_pos < 0:
                 continue
+            
+            # Extract label (strip leading - or * and whitespace)
+            label_raw = line[:colon_pos].lstrip('-* \t')
+            label = label_raw.strip().lower()
+            value_part = line[colon_pos + 1:]
 
-            label = m.group(1).strip().lower()
-            try:
-                val = float(m.group(2).replace(',', '.'))
-            except ValueError:
-                continue
-
-            # Look up in key map
-            internal_key = SCAFFOLD_KEY_MAP.get(label)
-            if internal_key:
-                # For duplicate keys across sections (e.g. whatif baseline vs scenario),
-                # keep the FIRST occurrence (baseline) for core fields,
-                # but allow overwrite for comparison-specific fields
-                comparison_keys = {"delta_exd", "annual_energy_savings", "annual_cost_savings"}
-                if internal_key not in values or internal_key in comparison_keys:
-                    values[internal_key] = val
+            # Find ALL number+unit matches in value part
+            matches = list(num_unit_pattern.finditer(value_part))
+            
+            # Also extract first bare number (no unit) — critical for dimensionless values
+            # CRF: 0.07095 (i = 5%, n = 25 years) → bare = 0.07095, unit match = 5%
+            first_bare_match = re.match(r"\s*~?([\d]+[.,][\d]+|[\d]+)", value_part)
+            bare_val = None
+            if first_bare_match:
+                try:
+                    bare_val = float(first_bare_match.group(1).replace(',', '.'))
+                except ValueError:
+                    pass
+            
+            if matches:
+                parsed_matches = []
+                for m in matches:
+                    try:
+                        num_str = m.group(1).replace(',', '')
+                        if ',' in m.group(1) and '.' not in m.group(1):
+                            num_str = m.group(1).replace(',', '.')
+                        parsed_matches.append((float(num_str), m.group(2)))
+                    except ValueError:
+                        continue
+                
+                if not parsed_matches and bare_val is None:
+                    continue
+            elif bare_val is not None:
+                parsed_matches = []
             else:
-                # Try partial matching for common variations
+                continue
+
+            # Look up internal key
+            internal_key = SCAFFOLD_KEY_MAP.get(label)
+            
+            if not internal_key:
+                # Partial matching: find LONGEST matching key (prevents "exergy in" 
+                # matching inside "exergy increase" before "exergy out" gets a chance)
+                best_match_len = 0
                 for map_key, internal in SCAFFOLD_KEY_MAP.items():
-                    if map_key in label and internal not in values:
-                        values[internal] = val
-                        break
+                    if map_key in label and len(map_key) > best_match_len:
+                        best_match_len = len(map_key)
+                        internal_key = internal
+            
+            if not internal_key:
+                label_concepts = {
+                    "exergy_in": ["exergy in", "exergy fuel", "fuel exergy", "power input",
+                                  "exergy input", "exergy transfer hot"],
+                    "exergy_out": ["exergy out", "exergy product", "product exergy", "exergy of cooling",
+                                   "useful exergy", "flow exergy increase", "exergy transfer cold"],
+                    "exergy_destroyed": ["exergy destroy", "exergy destruct"],
+                    "efficiency": ["exergy efficien", "η_ex"],
+                    "exergy_waste": ["exergy lost", "exergy loss", "stack gas exergy", "waste stream",
+                                     "exergy rejected"],
+                    "entropy_generation": ["entropy generation", "sgen"],
+                    "bejan_number": ["bejan number", "bejan (ns)", "(ns)"],
+                }
+                # Check longest concept first to avoid substring collisions
+                best_concept_len = 0
+                for ikey, concepts in label_concepts.items():
+                    for c in concepts:
+                        if c in label and len(c) > best_concept_len:
+                            best_concept_len = len(c)
+                            internal_key = ikey
+
+            if internal_key:
+                # Select best match based on key type
+                preferred = PREFERRED_UNIT.get(internal_key)
+                val = None
+                
+                if preferred and parsed_matches:
+                    # Key has a preferred unit (kW, kW/K, %, etc.)
+                    preferred_vals = [v for v, u in parsed_matches if u == preferred]
+                    if preferred_vals:
+                        val = preferred_vals[-1]  # Last match with correct unit
+                
+                if val is None and not preferred and bare_val is not None:
+                    # Dimensionless key (CRF, Bejan, f-factor): prefer bare number
+                    val = bare_val
+                
+                if val is None and parsed_matches:
+                    # Fallback: take last match regardless of unit
+                    val = parsed_matches[-1][0]
+                
+                if val is None and bare_val is not None:
+                    val = bare_val
+
+                if val is not None:
+                    comparison_keys = {"delta_exd", "annual_energy_savings", "annual_cost_savings"}
+                    if internal_key not in values or internal_key in comparison_keys:
+                        values[internal_key] = val
 
     return values
 

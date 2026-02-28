@@ -122,6 +122,11 @@ Rules for Calculation Summary:
 - Every numerical result that appears anywhere in your analysis MUST also appear here
 - Include self-consistency check lines where applicable (see family-specific instructions)
 - Think of this as your calculation scratchpad: calculate here, explain below
+- USE EXACT LABELS as shown in the family-specific templates below. Do NOT rephrase them.
+  For example, write "Exergy in: 55.00 kW" NOT "Electrical power input: 55.00 kW"
+  Write "Exergy out (product): 23.40 kW" NOT "Hydraulic power (exergy product): 23.40 kW"
+  You may add clarifying text in parentheses AFTER the value: "Exergy in: 55.00 kW (electrical input)"
+  But the label before the colon must match the template exactly.
 
 ### 2. Detailed Analysis (SECOND — explain your work)
 
