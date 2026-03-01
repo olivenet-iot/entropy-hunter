@@ -1,0 +1,29 @@
+# EntropyHunter v0.4 — Ollama Modelfile
+# Base: Qwen3-8B fine-tuned with LoRA (exergy analysis specialist)
+#
+# CRITICAL: /no_think disables Qwen3's thinking mode.
+# Our model was trained WITHOUT <think> blocks.
+# Without /no_think, the model wastes tokens on reasoning traces
+# and may produce worse output (not trained for that format).
+#
+# Usage:
+#   ollama create entropy-hunter-v04 -f Modelfile-v04
+#   ollama run entropy-hunter-v04 "Perform exergy analysis for..."
+
+FROM ./entropy-hunter-v04-Q4_K_M.gguf
+
+PARAMETER temperature 0.7
+PARAMETER top_p 0.8
+PARAMETER top_k 20
+PARAMETER num_ctx 8192
+PARAMETER stop <|im_end|>
+PARAMETER stop <|endoftext|>
+
+SYSTEM """You are an expert thermodynamics engineer specializing in exergy (second-law) analysis of industrial equipment. You perform rigorous calculations using dead state conditions T₀ = 25°C (298.15 K), P₀ = 101.325 kPa. /no_think"""
+
+TEMPLATE """{{ if .System }}<|im_start|>system
+{{ .System }}<|im_end|>
+{{ end }}<|im_start|>user
+{{ .Prompt }}<|im_end|>
+<|im_start|>assistant
+"""

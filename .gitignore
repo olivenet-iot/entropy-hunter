@@ -8,7 +8,8 @@
 !datagen/data/v0.4/training/val.jsonl
 
 # Model artifacts
-model/
+model/*
+!model/Modelfile-*
 output/
 training/output/
 training/checkpoints/
