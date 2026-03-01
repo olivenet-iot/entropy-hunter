@@ -2,10 +2,10 @@
 
 ## Project Overview
 
-EntropyHunter-7B is a domain-specific language model fine-tuned for industrial exergy analysis and entropy generation detection. It is the world's first open-source model for second-law thermodynamic analysis.
+EntropyHunter-7B is a domain-specific language model fine-tuned for industrial exergy analysis and entropy generation detection. A specialized open-source model for second-law thermodynamic analysis.
 
 **Owner:** Kemal Düzkar / Olivenet Ltd.
-**Status:** Phase 2 (Data Generation) complete, Phase 3 (Evaluation) complete for v0.2. Next: v0.4 planning.
+**Status:** v0.4 data generation complete (1369 examples). Next: fine-tuning.
 
 ## Repository Structure
 
@@ -16,8 +16,11 @@ entropy-hunter/
 │   ├── config.py      # API config, ExergyLab path, quality thresholds
 │   ├── templates/     # Prompt templates for each analysis family (A-J)
 │   ├── generate.py    # Main generation orchestrator
-│   └── quality.py     # Thermodynamic consistency checks
-├── data/              # Generated datasets (gitignored, uploaded to HF separately)
+│   ├── quality.py     # Thermodynamic consistency checks
+│   ├── quality_v5.1_fixed.py  # v0.4 enhanced QC with parser recovery
+│   ├── recover_v2.py  # Reject recovery pipeline (38 KB)
+│   └── data/v0.4/training/    # Final training split (committed)
+├── data/              # Raw generated datasets (gitignored, uploaded to HF separately)
 ├── training/          # LoRA fine-tuning scripts (Unsloth)
 ├── eval/              # Evaluation benchmarks & results
 └── serving/           # Deployment configs (vLLM, GGUF)
@@ -61,19 +64,26 @@ use the values from ExergyLab's engines:
 - Type hints everywhere
 - Docstrings for public functions
 - YAML for configuration, JSON for data
-- Alpaca format for training data: {"instruction": ..., "input": ..., "output": ...}
+- ChatML format for v0.4+ training data (system/user/assistant turns)
+- Alpaca format for v0.1–v0.2 training data: {"instruction": ..., "input": ..., "output": ...}
 - All temperatures in Kelvin for calculations, Celsius for display
 - All pressures in kPa internally, bar for display
 
-## Current Phase: v0.4 Planning
+## Current Phase: v0.4 Fine-tuning
 
 v0.2 is the active model (85.5%, Grade B+, 40 tests x 3 runs).
 v0.3 JSON-free experiment failed (-7.2pp regression), archived in `archive/v03-json-free-attempt/`.
 
+v0.4 data generation complete:
+- 1369 examples (1235 train / 134 val), ChatML format
+- 8 equipment types, 6 analysis families
+- Teacher model: Claude Opus, thermodynamic QC verified
+- Training files: `datagen/data/v0.4/training/{train,val}.jsonl`
+
 Next steps:
-1. Evaluate 14B base model (Qwen2.5-14B) for improved reasoning
-2. Replace JSON scaffold with `## Calculation Summary` markdown format
-3. Add more EGM and exergoeconomic training examples (weakest categories)
+1. Fine-tune on v0.4 dataset (LoRA, Unsloth)
+2. Evaluate 14B base model (Qwen2.5-14B) for improved reasoning
+3. Benchmark against v0.2 on 40-test suite
 4. Target: 90%+ on 40-test benchmark
 
 ## Do NOT
