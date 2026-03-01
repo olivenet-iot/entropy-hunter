@@ -1,12 +1,23 @@
 """
-EntropyHunter — Qwen2.5-7B LoRA Fine-Tuning
+EntropyHunter v0.4 — Qwen3-8B LoRA Fine-Tuning
+
+Changes from v0.2 (Qwen2.5-7B):
+  - Base model: Qwen3-8B (unsloth/Qwen3-8B)
+  - Thinking mode: DISABLED (enable_thinking=False)
+    Our training data has no <think> blocks. SFT with thinking OFF
+    trains the model to respond directly, like Qwen2.5 did.
+  - Training data: 1235 train / 134 val (v0.4 scaffold format)
+  - Data path: datagen/data/v0.4/training/ (repo-relative)
+  - LoRA: r=16, alpha=32 (same as v0.2)
+  - Output: output/entropy-hunter-8b-v04/
 
 Uses Unsloth for 2x faster training with 60% less memory.
 
 Usage:
-    python train.py                          # Default settings
-    python train.py --epochs 5               # More epochs
-    python train.py --push-to-hub kemal/entropy-hunter-7b   # Push to HF
+    python train_v04.py                              # Default settings
+    python train_v04.py --epochs 5                   # More epochs
+    python train_v04.py --save-gguf                  # Export GGUF after training
+    python train_v04.py --lora-r 32                  # Higher LoRA rank
 """
 
 import argparse
@@ -21,16 +32,31 @@ def main(args):
     # ============================================================
     from unsloth import FastLanguageModel
 
-    print("🔥 Loading Qwen2.5-7B...")
+    print("=" * 60)
+    print("🔥 EntropyHunter v0.4 — Qwen3-8B Fine-Tuning")
+    print("=" * 60)
+    print()
+    print(f"   Base model:      {args.model_name}")
+    print(f"   LoRA rank:       {args.lora_r}")
+    print(f"   LoRA alpha:      {args.lora_alpha}")
+    print(f"   Learning rate:   {args.lr}")
+    print(f"   Epochs:          {args.epochs}")
+    print(f"   Max seq length:  {args.max_seq_length}")
+    print(f"   Batch size:      {args.batch_size}")
+    print(f"   Grad accum:      {args.grad_accum}")
+    print(f"   Effective batch:  {args.batch_size * args.grad_accum}")
+    print()
+
+    print("📦 Loading Qwen3-8B...")
 
     model, tokenizer = FastLanguageModel.from_pretrained(
-        model_name="unsloth/Qwen2.5-7B-Instruct",  # Unsloth optimized
+        model_name=args.model_name,
         max_seq_length=args.max_seq_length,
-        dtype=None,      # auto-detect (float16 on L4)
-        load_in_4bit=True,  # 4-bit quantization for LoRA training
+        dtype=None,          # auto-detect (bf16 on L4)
+        load_in_4bit=True,   # 4-bit quantization for LoRA training
     )
 
-    print(f"   Model loaded. Max seq length: {args.max_seq_length}")
+    print(f"   Model loaded. Max seq: {args.max_seq_length}")
 
     # ============================================================
     # Step 2: Configure LoRA adapters
@@ -56,7 +82,7 @@ def main(args):
     print(f"   Trainable: {trainable:,} / {total:,} ({trainable/total*100:.2f}%)")
 
     # ============================================================
-    # Step 3: Load dataset (ChatML format)
+    # Step 3: Load dataset (ChatML format from v0.4 pipeline)
     # ============================================================
     print("📚 Loading dataset...")
 
@@ -70,69 +96,94 @@ def main(args):
     print(f"   Train: {len(dataset['train'])} examples")
     print(f"   Val:   {len(dataset['validation'])} examples")
 
+    # Validate a sample
+    sample = dataset["train"][0]
+    assert "messages" in sample, "Dataset must have 'messages' field (ChatML format)"
+    roles = [m["role"] for m in sample["messages"]]
+    assert "system" in roles and "user" in roles and "assistant" in roles, \
+        f"Messages must have system/user/assistant roles, got: {roles}"
+    print(f"   Sample roles: {roles}")
+    print(f"   System prompt length: {len(sample['messages'][0]['content'])} chars")
+
     # ============================================================
-    # Step 4: Format with chat template
+    # Step 4: Format with Qwen3 chat template (thinking DISABLED)
     # ============================================================
-    print("📝 Applying chat template...")
+    print("📝 Applying Qwen3 chat template (thinking=OFF)...")
 
     def format_chat(example):
-        """Apply Qwen2.5 chat template to messages."""
+        """Apply Qwen3 chat template with thinking disabled.
+
+        Critical: enable_thinking=False because our training data
+        contains direct analysis responses, no <think> blocks.
+        This trains the model to respond directly like Qwen2.5 did.
+        """
         text = tokenizer.apply_chat_template(
             example["messages"],
             tokenize=False,
             add_generation_prompt=False,
+            enable_thinking=False,  # KEY: no <think> blocks
         )
         return {"text": text}
 
-    dataset = dataset.map(format_chat, num_proc=4)
+    dataset = dataset.map(format_chat)
 
     # Check token lengths
-    sample_tokens = tokenizer(dataset["train"][0]["text"], return_length=True)
-    print(f"   Sample token length: {sample_tokens['length'][0]}")
+    sample_text = dataset["train"][0]["text"]
+    sample_tokens = len(tokenizer.encode(sample_text))
+    print(f"   Sample formatted length: {len(sample_text)} chars, ~{sample_tokens} tokens")
 
-    # Filter out examples that exceed max_seq_length
-    def check_length(example):
-        tokens = tokenizer(example["text"], return_length=True)
-        return tokens["length"][0] <= args.max_seq_length
-
-    orig_train_len = len(dataset["train"])
-    dataset["train"] = dataset["train"].filter(check_length, num_proc=4)
-    filtered = orig_train_len - len(dataset["train"])
-    if filtered > 0:
-        print(f"   ⚠️  Filtered {filtered} examples exceeding {args.max_seq_length} tokens")
+    # Warn if any examples might be truncated
+    if sample_tokens > args.max_seq_length * 0.9:
+        print(f"   ⚠️  Sample is {sample_tokens} tokens, close to max {args.max_seq_length}")
 
     # ============================================================
-    # Step 5: Training configuration
+    # Step 5: Configure training
     # ============================================================
-    print("🏋️ Setting up trainer...")
+    print("⚙️  Configuring trainer...")
 
-    from trl import SFTTrainer
-    from transformers import TrainingArguments
+    from trl import SFTTrainer, SFTConfig
 
-    training_args = TrainingArguments(
-        output_dir=args.output_dir,
+    output_dir = args.output_dir
+
+    training_args = SFTConfig(
+        # Output
+        output_dir=output_dir,
+
+        # Training schedule
         num_train_epochs=args.epochs,
         per_device_train_batch_size=args.batch_size,
-        per_device_eval_batch_size=args.batch_size,
         gradient_accumulation_steps=args.grad_accum,
-        learning_rate=args.learning_rate,
+
+        # Learning rate
+        learning_rate=args.lr,
         lr_scheduler_type="cosine",
         warmup_ratio=0.05,
-        weight_decay=0.01,
+
+        # Precision
         fp16=False,
-        bf16=True,
-        logging_steps=10,
+        bf16=True,    # L4 GPU supports bf16
+
+        # Logging
+        logging_steps=5,
+        logging_first_step=True,
+
+        # Evaluation
         eval_strategy="steps",
-        eval_steps=50,
+        eval_steps=25,
+
+        # Saving
         save_strategy="steps",
-        save_steps=100,
+        save_steps=50,
         save_total_limit=3,
-        load_best_model_at_end=True,
-        metric_for_best_model="eval_loss",
-        report_to="wandb" if args.wandb else "none",
-        run_name="entropy-hunter-7b" if args.wandb else None,
+
+        # Sequence
+        max_seq_length=args.max_seq_length,
+        dataset_text_field="text",
+        packing=False,  # No packing — each example is one sequence
+
+        # Misc
         seed=42,
-        optim="adamw_8bit",  # 8-bit optimizer, saves VRAM
+        report_to="none",  # Set to "wandb" if you want W&B tracking
     )
 
     trainer = SFTTrainer(
@@ -141,155 +192,182 @@ def main(args):
         train_dataset=dataset["train"],
         eval_dataset=dataset["validation"],
         args=training_args,
-        dataset_text_field="text",
-        max_seq_length=args.max_seq_length,
-        packing=True,  # Pack short examples together (faster)
     )
 
     # ============================================================
     # Step 6: Train!
     # ============================================================
-    print(f"\n{'='*55}")
-    print(f"🚀 Starting training")
-    print(f"   Epochs: {args.epochs}")
-    print(f"   Batch size: {args.batch_size} x {args.grad_accum} grad_accum = {args.batch_size * args.grad_accum} effective")
-    print(f"   Learning rate: {args.learning_rate}")
-    print(f"   LoRA r={args.lora_r}, alpha={args.lora_alpha}")
-    print(f"   Output: {args.output_dir}")
-    print(f"{'='*55}\n")
+    print()
+    print("=" * 60)
+    print("🚀 Starting training...")
+    print("=" * 60)
+    print()
 
-    trainer_stats = trainer.train()
+    stats = trainer.train()
 
-    print(f"\n✅ Training complete!")
-    print(f"   Total steps: {trainer_stats.global_step}")
-    print(f"   Train loss: {trainer_stats.training_loss:.4f}")
+    print()
+    print("=" * 60)
+    print("✅ Training complete!")
+    print(f"   Total steps:    {stats.global_step}")
+    print(f"   Training loss:  {stats.training_loss:.4f}")
+    print(f"   Runtime:        {stats.metrics['train_runtime']:.0f}s "
+          f"({stats.metrics['train_runtime']/60:.1f} min)")
+    print("=" * 60)
 
     # ============================================================
-    # Step 7: Save
+    # Step 7: Save LoRA adapter
     # ============================================================
-
-    # Save LoRA adapter
-    lora_dir = Path(args.output_dir) / "lora"
+    lora_dir = os.path.join(output_dir, "lora")
+    print(f"\n💾 Saving LoRA adapter to {lora_dir}...")
     model.save_pretrained(lora_dir)
     tokenizer.save_pretrained(lora_dir)
-    print(f"   💾 LoRA adapter saved: {lora_dir}")
+    print("   LoRA saved.")
 
-    # Save merged model (full weights, for inference)
-    if args.save_merged:
-        print("   Merging LoRA into base model...")
-        merged_dir = Path(args.output_dir) / "merged"
-        model.save_pretrained_merged(
-            merged_dir,
-            tokenizer,
-            save_method="merged_16bit",
-        )
-        print(f"   💾 Merged model saved: {merged_dir}")
+    # Save training metadata
+    metadata = {
+        "project": "entropy-hunter",
+        "version": "v0.4",
+        "base_model": args.model_name,
+        "lora_r": args.lora_r,
+        "lora_alpha": args.lora_alpha,
+        "learning_rate": args.lr,
+        "epochs": args.epochs,
+        "train_examples": len(dataset["train"]),
+        "val_examples": len(dataset["validation"]),
+        "max_seq_length": args.max_seq_length,
+        "training_loss": stats.training_loss,
+        "total_steps": stats.global_step,
+        "runtime_seconds": stats.metrics["train_runtime"],
+        "thinking_mode": False,
+        "notes": "v0.4: Qwen3-8B + 1369 scaffold examples (Opus 4.6 teacher)"
+    }
+    meta_path = os.path.join(output_dir, "training_metadata.json")
+    with open(meta_path, "w") as f:
+        json.dump(metadata, f, indent=2)
+    print(f"   Metadata saved to {meta_path}")
 
-    # Save GGUF for llama.cpp (optional)
+    # ============================================================
+    # Step 8: GGUF export (optional)
+    # ============================================================
     if args.save_gguf:
-        print("   Converting to GGUF...")
-        gguf_dir = Path(args.output_dir) / "gguf"
+        print()
+        print("=" * 60)
+        print("📦 Exporting GGUF (Q4_K_M)...")
+        print("=" * 60)
+
+        gguf_dir = os.path.join(output_dir, "gguf")
         model.save_pretrained_gguf(
             gguf_dir,
             tokenizer,
-            quantization_method=["q4_k_m", "q8_0"],
+            quantization_method=["q4_k_m"],
         )
-        print(f"   💾 GGUF saved: {gguf_dir}")
+        print(f"   GGUF saved to {gguf_dir}")
 
-    # Push to HuggingFace Hub
-    if args.push_to_hub:
-        print(f"   Pushing to HuggingFace: {args.push_to_hub}")
-        model.push_to_hub_merged(
-            args.push_to_hub,
-            tokenizer,
-            save_method="merged_16bit",
-            token=os.environ.get("HF_TOKEN"),
-        )
-        print(f"   🤗 Pushed: https://huggingface.co/{args.push_to_hub}")
+        # List output files
+        gguf_path = Path(gguf_dir)
+        # Unsloth creates a subdirectory with _gguf suffix
+        for p in sorted(Path(output_dir).rglob("*.gguf")):
+            size_gb = p.stat().st_size / (1024**3)
+            print(f"   📄 {p.name} ({size_gb:.1f} GB)")
 
     # ============================================================
-    # Step 8: Quick eval
+    # Step 9: Quick inference test
     # ============================================================
-    print(f"\n{'='*55}")
-    print(f"🧪 Quick inference test")
-    print(f"{'='*55}")
+    if args.test:
+        print()
+        print("=" * 60)
+        print("🧪 Quick inference test...")
+        print("=" * 60)
 
-    FastLanguageModel.for_inference(model)
+        FastLanguageModel.for_inference(model)
 
-    test_prompt = """Perform a complete exergy analysis for a screw compressor.
+        test_messages = [
+            {"role": "system", "content": "You are an expert thermodynamics engineer specializing in exergy (second-law) analysis of industrial equipment."},
+            {"role": "user", "content": (
+                "Perform a basic exergy analysis for a centrifugal compressor.\n"
+                "Operating conditions: inlet air at 25°C, 101.325 kPa; "
+                "outlet at 215°C, 800 kPa; mass flow 2.5 kg/s; "
+                "power input 520 kW; isentropic efficiency 78%.\n"
+                "Dead state: T₀ = 25°C, P₀ = 101.325 kPa."
+            )}
+        ]
 
-Operating conditions:
-- Electrical power input: 75 kW
-- Air inlet temperature: 25°C
-- Inlet pressure: 1.013 bar (atmospheric)
-- Discharge pressure: 8 bar
-- Isentropic efficiency: 72%
-- Volume flow rate (FAD at inlet conditions): 10.5 m³/min
-- Operating mode: full_load"""
+        inputs = tokenizer.apply_chat_template(
+            test_messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            enable_thinking=False,
+            return_tensors="pt",
+        ).to(model.device)
 
-    messages = [
-        {"role": "system", "content": "You are EntropyHunter, an expert thermodynamic analysis assistant specializing in exergy (second-law) analysis of industrial equipment."},
-        {"role": "user", "content": test_prompt},
-    ]
+        from transformers import TextStreamer
+        streamer = TextStreamer(tokenizer, skip_prompt=True)
 
-    inputs = tokenizer.apply_chat_template(
-        messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        return_tensors="pt",
-    ).to(model.device)
+        print("\n--- Model response ---")
+        output = model.generate(
+            input_ids=inputs,
+            streamer=streamer,
+            max_new_tokens=2048,
+            temperature=0.7,
+            top_p=0.8,
+            top_k=20,
+            do_sample=True,
+        )
+        print("--- End response ---\n")
 
-    outputs = model.generate(
-        input_ids=inputs,
-        max_new_tokens=2048,
-        temperature=0.7,
-        do_sample=True,
-    )
-
-    response = tokenizer.decode(outputs[0][inputs.shape[1]:], skip_special_tokens=True)
-    print(response[:1000])
-    print(f"\n... ({len(response)} chars total)")
-    print(f"\n✅ Done! Model ready at: {args.output_dir}")
+    print()
+    print("🏁 All done!")
+    if not args.save_gguf:
+        print("   Next: python train_v04.py --save-gguf  (to export GGUF)")
+    print("   Next: Download GGUF → ollama create → benchmark")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="EntropyHunter Fine-Tuning")
-
-    # Data
-    parser.add_argument("--train-file", default="data/v0.3/training/train.jsonl")
-    parser.add_argument("--val-file", default="data/v0.3/training/val.jsonl")
-    parser.add_argument("--output-dir", default="output/entropy-hunter-7b-v03")
+    parser = argparse.ArgumentParser(description="EntropyHunter v0.4 Training")
 
     # Model
-    parser.add_argument("--max-seq-length", type=int, default=12288,
-                        help="Max sequence length (default: 12288, v0.2+)")
+    parser.add_argument("--model-name", default="unsloth/Qwen3-8B",
+                        help="Base model (default: unsloth/Qwen3-8B)")
+    parser.add_argument("--max-seq-length", type=int, default=8192,
+                        help="Max sequence length (default: 8192)")
+
+    # Data — relative to script location or absolute
+    script_dir = Path(__file__).parent
+    default_train = script_dir / "datagen" / "data" / "v0.4" / "training" / "train.jsonl"
+    default_val = script_dir / "datagen" / "data" / "v0.4" / "training" / "val.jsonl"
+
+    parser.add_argument("--train-file", default=str(default_train),
+                        help="Training data JSONL (ChatML)")
+    parser.add_argument("--val-file", default=str(default_val),
+                        help="Validation data JSONL (ChatML)")
 
     # LoRA
     parser.add_argument("--lora-r", type=int, default=16,
-                        help="LoRA rank (default: 16, reduced from v0.1's 32)")
+                        help="LoRA rank (default: 16)")
     parser.add_argument("--lora-alpha", type=int, default=32,
-                        help="LoRA alpha (default: 32, typically 2×r)")
+                        help="LoRA alpha (default: 32)")
 
     # Training
-    parser.add_argument("--epochs", type=int, default=3)
-    parser.add_argument("--batch-size", type=int, default=1,
-                        help="Per-device batch size (default: 1 for L4 24GB)")
-    parser.add_argument("--grad-accum", type=int, default=16,
-                        help="Gradient accumulation steps (effective batch = batch_size × grad_accum)")
-    parser.add_argument("--learning-rate", type=float, default=1e-4,
-                        help="Learning rate (default: 1e-4, conservative for v0.2+)")
+    parser.add_argument("--lr", type=float, default=1e-4,
+                        help="Learning rate (default: 1e-4)")
+    parser.add_argument("--epochs", type=int, default=3,
+                        help="Training epochs (default: 3)")
+    parser.add_argument("--batch-size", type=int, default=2,
+                        help="Per-device batch size (default: 2)")
+    parser.add_argument("--grad-accum", type=int, default=4,
+                        help="Gradient accumulation steps (default: 4)")
 
     # Output
-    parser.add_argument("--save-merged", action="store_true",
-                        help="Save full merged model (base + LoRA)")
-    parser.add_argument("--save-gguf", action="store_true",
-                        help="Save GGUF for llama.cpp")
-    parser.add_argument("--push-to-hub", type=str, default=None,
-                        help="Push to HuggingFace Hub (e.g. username/model-name)")
+    parser.add_argument("--output-dir", default="output/entropy-hunter-8b-v04",
+                        help="Output directory")
 
-    # Tracking
-    parser.add_argument("--wandb", action="store_true",
-                        help="Log to Weights & Biases")
+    # Actions
+    parser.add_argument("--save-gguf", action="store_true",
+                        help="Export GGUF after training")
+    parser.add_argument("--test", action="store_true", default=True,
+                        help="Run inference test after training (default: True)")
+    parser.add_argument("--no-test", dest="test", action="store_false",
+                        help="Skip inference test")
 
     args = parser.parse_args()
     main(args)
