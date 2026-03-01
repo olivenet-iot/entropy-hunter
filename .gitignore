@@ -1,7 +1,11 @@
 # Data (uploaded to HuggingFace separately)
-data/
+/data/
 *.jsonl
 *.parquet
+
+# Allow v0.4 final training data to be committed
+!datagen/data/v0.4/training/train.jsonl
+!datagen/data/v0.4/training/val.jsonl
 
 # Model artifacts
 model/
