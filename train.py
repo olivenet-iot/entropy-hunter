@@ -71,7 +71,7 @@ def main(args):
             "gate_proj", "up_proj", "down_proj",       # MLP
         ],
         lora_alpha=args.lora_alpha,
-        lora_dropout=0.05,
+        lora_dropout=0,
         bias="none",
         use_gradient_checkpointing="unsloth",  # 30% less VRAM
         random_state=42,
@@ -352,10 +352,10 @@ if __name__ == "__main__":
                         help="Learning rate (default: 1e-4)")
     parser.add_argument("--epochs", type=int, default=3,
                         help="Training epochs (default: 3)")
-    parser.add_argument("--batch-size", type=int, default=2,
-                        help="Per-device batch size (default: 2)")
-    parser.add_argument("--grad-accum", type=int, default=4,
-                        help="Gradient accumulation steps (default: 4)")
+    parser.add_argument("--batch-size", type=int, default=1,
+                        help="Per-device batch size (default: 1)")
+    parser.add_argument("--grad-accum", type=int, default=8,
+                        help="Gradient accumulation steps (default: 8)")
 
     # Output
     parser.add_argument("--output-dir", default="output/entropy-hunter-8b-v04",
