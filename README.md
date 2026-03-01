@@ -1,6 +1,6 @@
 # 🔥 EntropyHunter-7B
 
-**The world's first open-source fine-tuned model for industrial exergy analysis and entropy generation detection.**
+**A specialized open-source LLM for industrial exergy analysis and entropy generation detection.**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 [![HuggingFace](https://img.shields.io/badge/🤗-HuggingFace-yellow.svg)](https://huggingface.co/OlivenetAI)
@@ -21,6 +21,10 @@
 | Training data | 800 examples, Alpaca format |
 
 See [docs/BENCHMARK_ANALYSIS.md](docs/BENCHMARK_ANALYSIS.md) for detailed results.
+
+### Next: v0.4 (in progress)
+
+v0.4 training data pipeline is complete: **1369 examples** (1235 train / 134 val) in ChatML format, generated via Claude Opus with thermodynamic QC. Covers 8 equipment types and 6 analysis families.
 
 ---
 
@@ -105,7 +109,7 @@ Training data is informed by the [ExergyLab](https://github.com/your-username/ex
 - [x] **v0.1** — MVP: ~800 examples, basic exergy + EGM + SPECO
 - [x] **v0.2** — Current: 85.5% benchmark, LoRA r=16, Qwen2.5-7B (active model)
 - [x] ~~**v0.3**~~ — JSON-free experiment: -7.2pp regression, archived
-- [ ] **v0.4** — 14B base + Calculation Summary scaffold (planned)
+- [ ] **v0.4** — 1369 ChatML examples, Calculation Summary scaffold, 14B base eval (in progress)
 - [ ] **v1.0** — Production: ExergyLab integration, edge deployment
 
 ## Technical Foundation
