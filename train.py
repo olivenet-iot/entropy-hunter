@@ -1,23 +1,21 @@
 """
 EntropyHunter v0.4 — Qwen3-8B LoRA Fine-Tuning
 
+Distillation: Opus 4.6 (teacher) → Qwen3-8B (student)
+Training data: 1369 verified exergy analysis examples (ChatML)
+
 Changes from v0.2 (Qwen2.5-7B):
   - Base model: Qwen3-8B (unsloth/Qwen3-8B)
   - Thinking mode: DISABLED (enable_thinking=False)
-    Our training data has no <think> blocks. SFT with thinking OFF
-    trains the model to respond directly, like Qwen2.5 did.
   - Training data: 1235 train / 134 val (v0.4 scaffold format)
-  - Data path: datagen/data/v0.4/training/ (repo-relative)
   - LoRA: r=16, alpha=32 (same as v0.2)
-  - Output: output/entropy-hunter-8b-v04/
 
-Uses Unsloth for 2x faster training with 60% less memory.
+Target GPU: A100 40GB (8192 seq length fits comfortably)
 
 Usage:
-    python train_v04.py                              # Default settings
-    python train_v04.py --epochs 5                   # More epochs
-    python train_v04.py --save-gguf                  # Export GGUF after training
-    python train_v04.py --lora-r 32                  # Higher LoRA rank
+    python train.py                    # Default settings
+    python train.py --epochs 5         # More epochs
+    python train.py --save-gguf        # Export GGUF after training
 """
 
 import argparse
@@ -52,7 +50,7 @@ def main(args):
     model, tokenizer = FastLanguageModel.from_pretrained(
         model_name=args.model_name,
         max_seq_length=args.max_seq_length,
-        dtype=None,          # auto-detect (bf16 on L4)
+        dtype=None,          # auto-detect (bf16 on A100)
         load_in_4bit=True,   # 4-bit quantization for LoRA training
     )
 
@@ -71,7 +69,7 @@ def main(args):
             "gate_proj", "up_proj", "down_proj",       # MLP
         ],
         lora_alpha=args.lora_alpha,
-        lora_dropout=0,
+        lora_dropout=0,      # Must be 0 for Unsloth fast patching
         bias="none",
         use_gradient_checkpointing="unsloth",  # 30% less VRAM
         random_state=42,
@@ -115,13 +113,12 @@ def main(args):
 
         Critical: enable_thinking=False because our training data
         contains direct analysis responses, no <think> blocks.
-        This trains the model to respond directly like Qwen2.5 did.
         """
         text = tokenizer.apply_chat_template(
             example["messages"],
             tokenize=False,
             add_generation_prompt=False,
-            enable_thinking=False,  # KEY: no <think> blocks
+            enable_thinking=False,
         )
         return {"text": text}
 
@@ -132,9 +129,21 @@ def main(args):
     sample_tokens = len(tokenizer.encode(sample_text))
     print(f"   Sample formatted length: {len(sample_text)} chars, ~{sample_tokens} tokens")
 
-    # Warn if any examples might be truncated
     if sample_tokens > args.max_seq_length * 0.9:
         print(f"   ⚠️  Sample is {sample_tokens} tokens, close to max {args.max_seq_length}")
+
+    # Token length distribution check
+    print("   Checking token length distribution...")
+    lengths = []
+    for ex in dataset["train"]:
+        n = len(tokenizer.encode(ex["text"]))
+        lengths.append(n)
+    lengths.sort()
+    truncated = sum(1 for l in lengths if l > args.max_seq_length)
+    print(f"   Min: {lengths[0]}, Median: {lengths[len(lengths)//2]}, "
+          f"Max: {lengths[-1]}, P95: {lengths[int(len(lengths)*0.95)]}")
+    print(f"   Truncated (>{args.max_seq_length}): {truncated}/{len(lengths)} "
+          f"({truncated/len(lengths)*100:.1f}%)")
 
     # ============================================================
     # Step 5: Configure training
@@ -161,7 +170,7 @@ def main(args):
 
         # Precision
         fp16=False,
-        bf16=True,    # L4 GPU supports bf16
+        bf16=True,
 
         # Logging
         logging_steps=5,
@@ -169,21 +178,21 @@ def main(args):
 
         # Evaluation
         eval_strategy="steps",
-        eval_steps=25,
+        eval_steps=50,
 
         # Saving
         save_strategy="steps",
-        save_steps=50,
+        save_steps=100,
         save_total_limit=3,
 
         # Sequence
         max_seq_length=args.max_seq_length,
         dataset_text_field="text",
-        packing=False,  # No packing — each example is one sequence
+        packing=False,
 
         # Misc
         seed=42,
-        report_to="none",  # Set to "wandb" if you want W&B tracking
+        report_to="none",
     )
 
     trainer = SFTTrainer(
@@ -239,7 +248,9 @@ def main(args):
         "total_steps": stats.global_step,
         "runtime_seconds": stats.metrics["train_runtime"],
         "thinking_mode": False,
-        "notes": "v0.4: Qwen3-8B + 1369 scaffold examples (Opus 4.6 teacher)"
+        "gpu": "A100-40GB",
+        "truncated_examples": truncated,
+        "notes": "v0.4: Qwen3-8B + 1369 scaffold examples (Opus 4.6 teacher), full 8192 seq"
     }
     meta_path = os.path.join(output_dir, "training_metadata.json")
     with open(meta_path, "w") as f:
@@ -263,9 +274,6 @@ def main(args):
         )
         print(f"   GGUF saved to {gguf_dir}")
 
-        # List output files
-        gguf_path = Path(gguf_dir)
-        # Unsloth creates a subdirectory with _gguf suffix
         for p in sorted(Path(output_dir).rglob("*.gguf")):
             size_gb = p.stat().st_size / (1024**3)
             print(f"   📄 {p.name} ({size_gb:.1f} GB)")
@@ -307,7 +315,7 @@ def main(args):
         output = model.generate(
             input_ids=inputs,
             streamer=streamer,
-            max_new_tokens=2048,
+            max_new_tokens=4096,
             temperature=0.7,
             top_p=0.8,
             top_k=20,
@@ -318,7 +326,7 @@ def main(args):
     print()
     print("🏁 All done!")
     if not args.save_gguf:
-        print("   Next: python train_v04.py --save-gguf  (to export GGUF)")
+        print("   Next: python train.py --save-gguf  (to export GGUF)")
     print("   Next: Download GGUF → ollama create → benchmark")
 
 
@@ -331,7 +339,7 @@ if __name__ == "__main__":
     parser.add_argument("--max-seq-length", type=int, default=8192,
                         help="Max sequence length (default: 8192)")
 
-    # Data — relative to script location or absolute
+    # Data
     script_dir = Path(__file__).parent
     default_train = script_dir / "datagen" / "data" / "v0.4" / "training" / "train.jsonl"
     default_val = script_dir / "datagen" / "data" / "v0.4" / "training" / "val.jsonl"
@@ -352,10 +360,10 @@ if __name__ == "__main__":
                         help="Learning rate (default: 1e-4)")
     parser.add_argument("--epochs", type=int, default=3,
                         help="Training epochs (default: 3)")
-    parser.add_argument("--batch-size", type=int, default=1,
-                        help="Per-device batch size (default: 1)")
-    parser.add_argument("--grad-accum", type=int, default=8,
-                        help="Gradient accumulation steps (default: 8)")
+    parser.add_argument("--batch-size", type=int, default=2,
+                        help="Per-device batch size (default: 2)")
+    parser.add_argument("--grad-accum", type=int, default=4,
+                        help="Gradient accumulation steps (default: 4)")
 
     # Output
     parser.add_argument("--output-dir", default="output/entropy-hunter-8b-v04",
@@ -365,7 +373,7 @@ if __name__ == "__main__":
     parser.add_argument("--save-gguf", action="store_true",
                         help="Export GGUF after training")
     parser.add_argument("--test", action="store_true", default=True,
-                        help="Run inference test after training (default: True)")
+                        help="Run inference test after training")
     parser.add_argument("--no-test", dest="test", action="store_false",
                         help="Skip inference test")
 
